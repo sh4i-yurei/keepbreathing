@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<!--
+   keepbreath.ing
+   Author:  Mark Thompson
+   Date:   2026-06-05
+
+   Filename: about.html
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Breathing — whois</title>
+    <link href="styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet" />
+    <script src="support.js" defer></script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         BACKGROUND CANVAS LAYERS
+         Phantom code + scan line — fixed, behind everything
+    ============================================================ -->
+    <canvas id="phantom" class="phantom"></canvas>
+    <div class="scanline" data-scan></div>
+    <div class="crt-overlay"></div>
+
+
+    <!-- ============================================================
+         SIDEBAR
+         Brand, status dot, navigation, social links
+    ============================================================ -->
+    <aside>
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-top">
+                <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
+                <span class="status-dot"></span>
+            </div>
+            <div class="subtitle">traceroute.dev</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-label"># navigation</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">init</a></li>
+                <li><a href="about.html" class="active">whois</a></li>
+                <li><a href="projects.html">make</a></li>
+                <li><a href="blog.html">stdout</a></li>
+                <li><a href="resume.html">cat resume.txt</a></li>
+                <li><a href="contact.html">sendmail</a></li>
+                <li><a href="journey.html">uptime</a></li>
+            </ul>
+        </nav>
+
+        <!-- Kana decorative overlay -->
+        <div class="kana-overlay">
+            <span class="kana">起</span>
+            <span class="kana">誰</span>
+            <span class="kana">作</span>
+            <span class="kana">文</span>
+            <span class="kana">歴</span>
+            <span class="kana">連</span>
+            <span class="kana">跡</span>
+        </div>
+
+        <!-- Social Links -->
+        <div class="sidebar-bottom">
+            <div class="sidebar-status">
+                <span class="status-label">status</span>
+                <span class="status-value"><span class="status-dot-sm"></span> ONLINE</span>
+            </div>
+            <div class="sidebar-status">
+                <span class="status-label">node</span>
+                <span class="status-value">us-east</span>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/sh4i-yurei" target="_blank">github</a>
+                <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================================
+         MAIN COLUMN
+         Top bar + page content
+    ============================================================ -->
+    <main>
+
+        <!-- --------------------------------------------------------
+             TOP BAR
+             Traffic lights, page prompt, clock
+        -------------------------------------------------------- -->
+        <header>
+            <div class="traffic-lights">
+                <span class="tl-red"></span>
+                <span class="tl-amber"></span>
+                <span class="tl-green"></span>
+            </div>
+            <div class="prompt">mark@traceroute.dev:~/<span class="path">whois</span>$</div>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <!-- --------------------------------------------------------
+             PAGE CONTENT
+        -------------------------------------------------------- -->
+
+        <!-- --------------------------------------------------------
+             HERO HEADING
+             whois mark.thompson — glitch / RGB-split effect
+        -------------------------------------------------------- -->
+        <div class="page-hero">
+            <h1 class="page-title">About <span class="accent">Mark</span><span class="caret">▋</span></h1>
+        </div>
+        <p class="projects-subtitle">Who I am, what I do, and where I'm headed.</p>
+
+        <!-- --------------------------------------------------------
+             QUOTE
+        -------------------------------------------------------- -->
+        <blockquote class="about-quote">
+            <p>"It always seems impossible until it's done."</p>
+            <cite>— Nelson Mandela</cite>
+        </blockquote>
+
+        <!-- --------------------------------------------------------
+             HEADSHOT — floats right; bio text wraps around it
+        -------------------------------------------------------- -->
+        <img class="headshot" src="images/headshot.jpg" alt="Mark Thompson" width="640" height="800">
+
+        <!-- --------------------------------------------------------
+             FOCUS LADDER
+             Degrees and certs — sits below the headshot (clear: right)
+        -------------------------------------------------------- -->
+        <div class="focus-ladder">
+            <div class="milestone active">
+                <div class="milestone-dot"></div>
+                <div class="milestone-content">
+                    <span class="milestone-date">Now</span>
+                    <h3>AAS Computer Networking + AAS Cybersecurity</h3>
+                    <p>Hinds Community College — both in progress</p>
+                    <div class="cert-chips">
+                        <span class="chip chip-net">Fiber Certification</span>
+                        <span class="chip chip-sec">CompTIA Security+</span>
+                    </div>
+                </div>
+            </div>
+            <div class="milestone planned">
+                <div class="milestone-dot"></div>
+                <div class="milestone-content">
+                    <span class="milestone-date">January 2027</span>
+                    <h3>CCNA + Linux+</h3>
+                    <p>Transfer to Mississippi State</p>
+                </div>
+            </div>
+            <div class="milestone planned">
+                <div class="milestone-dot"></div>
+                <div class="milestone-content">
+                    <span class="milestone-date">Mississippi State</span>
+                    <h3>Bachelor of Applied Science in Cybersecurity</h3>
+                </div>
+            </div>
+            <div class="milestone future">
+                <div class="milestone-dot"></div>
+                <div class="milestone-content">
+                    <span class="milestone-date">Future</span>
+                    <h3>Master's — AI / Machine Learning</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- --------------------------------------------------------
+             INTRO
+             Background and personal story
+        -------------------------------------------------------- -->
+        <div class="about-intro">
+
+            <p>I'm Mark Thompson, 46, autistic, a father of four and stepfather of two. The house
+               is loud and I've learned to keep a still mind in the middle of it. The short version
+               of me is a kid who had to know how things worked and never grew out of it. My dad
+               put the tools in my hands early, Radio Shack electronics kits, a camera, the patience
+               to stay with something until it made sense. I was fixing computers for people before
+               I was old enough to drive, and no matter what my life turned into after that, that
+               part never left. When something broke, it came to me, and I was the one who figured
+               out why.</p>
+
+            <p>Years ago I tried to make that into a career. I enrolled in networking courses, and
+               partway through I quit, convinced I wasn't capable of it. The truth is simpler and
+               harder. I hadn't figured out yet how I learn, and I read that confusion as a limit
+               instead of a gap. So I walked away from the one thing that had always been mine.</p>
+
+            <p>What followed was a long stretch of other work. Cooking was what I always came back
+               to, because I was good at it and a kitchen will always hire. It started in my
+               grandmother's kitchen and ran up into the high-end casino kitchens, and the part I
+               lived for was go time, when it got slammed and there was no room left to fake
+               anything. I tried to build something of my own with photography, the camera my dad
+               gave me turned into a business shooting weddings and families, until a divorce ended
+               it and the gear got sold. There was other work in between, none of it the plan. It
+               all ran into the same wall. I put everything I have into whatever I'm doing, and I
+               kept ending up next to people who didn't, and I could never make my peace with
+               that.</p>
+
+            <p>Coming back to school was not a small decision, and I didn't make it for a paycheck.
+               It meant walking back to the exact thing I'd quit on, at 46, and being honest that
+               the first try failed because I gave up. What's different this time is that I know how
+               I learn, and the hard parts don't send me running anymore. My kids are watching me do
+               this. I want them to see a person start over late, scared, and finish it anyway.</p>
+
+            <p>Now I'm studying Computer Networking and Cybersecurity at Hinds Community College and
+               doing PC repair part time while I go. This summer I'm getting fiber certified and
+               sitting for Security+, and in January I transfer to Mississippi State for a Bachelor
+               of Applied Science in Cybersecurity. I keep a home lab running and build things just
+               to understand them, including this site, which I hand-coded without frameworks. The
+               electronics came back around too. Those Radio Shack kits turned into teaching myself
+               circuits, PCBs, and microcontrollers, and building toward drones. The plan from here
+               is security work, and past that, machine learning and AI. I'm taking it in order on
+               purpose, networking first, then security, then the harder things, because I'd rather
+               understand how something works than fake my way through it. This time I'm not walking
+               away from it. I'm building toward work that actually matters to me, and I've never
+               been more sure of the direction.</p>
+
+        </div>
+
+        <!-- --------------------------------------------------------
+             SKILLS GRID
+             Four cards: networking, systems, security, code
+        -------------------------------------------------------- -->
+        <div class="skills-grid">
+            <div class="skill-card">
+                <h3>Networking</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-net">TCP/IP</span>
+                    <span class="chip chip-net">Subnetting</span>
+                    <span class="chip chip-net">DNS</span>
+                    <span class="chip chip-net">DHCP</span>
+                    <span class="chip chip-net">Routing</span>
+                    <span class="chip chip-net">Switching</span>
+                    <span class="chip chip-net">Packet Tracer</span>
+                    <span class="chip chip-sec">Wireshark</span>
+                    <span class="chip chip-sec">Nmap</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Systems</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-sys">Windows</span>
+                    <span class="chip chip-sys">Linux</span>
+                    <span class="chip chip-sys">PC Repair</span>
+                    <span class="chip chip-sys">Windows Server</span>
+                    <span class="chip chip-sys">Active Directory</span>
+                    <span class="chip chip-sys">Hardware Troubleshooting</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Security</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-sec">Network Security</span>
+                    <span class="chip chip-sec">Wireshark</span>
+                    <span class="chip chip-sec">Nmap</span>
+                    <span class="chip chip-sec">Threat Analysis</span>
+                    <span class="chip chip-sys">CompTIA A+</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Code &amp; Web</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-lang">HTML</span>
+                    <span class="chip chip-lang">CSS</span>
+                    <span class="chip chip-lang">JavaScript</span>
+                    <span class="chip chip-tool">Flask</span>
+                    <span class="chip chip-sys">SQLite</span>
+                    <span class="chip chip-tool">Git</span>
+                    <span class="chip chip-tool">nginx</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+</body>
+
+</html>

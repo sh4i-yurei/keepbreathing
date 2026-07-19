@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<!--
+   keepbreath.ing
+   Author:  Mark Thompson
+   Date:   2026-06-05
+
+   Filename: blog.html
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Breathing — stdout</title>
+    <link href="styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet" />
+    <script src="support.js" defer></script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         BACKGROUND CANVAS LAYERS
+         Phantom code + scan line — fixed, behind everything
+    ============================================================ -->
+    <canvas id="phantom" class="phantom"></canvas>
+    <div class="scanline" data-scan></div>
+    <div class="crt-overlay"></div>
+
+
+    <!-- ============================================================
+         SIDEBAR
+         Brand, status dot, navigation, social links
+    ============================================================ -->
+    <aside>
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-top">
+                <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
+                <span class="status-dot"></span>
+            </div>
+            <div class="subtitle">traceroute.dev</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-label"># navigation</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">init</a></li>
+                <li><a href="about.html">whois</a></li>
+                <li><a href="projects.html">make</a></li>
+                <li><a href="blog.html" class="active">stdout</a></li>
+                <li><a href="resume.html">cat resume.txt</a></li>
+                <li><a href="contact.html">sendmail</a></li>
+                <li><a href="journey.html">uptime</a></li>
+            </ul>
+        </nav>
+
+        <!-- Kana decorative overlay -->
+        <div class="kana-overlay">
+            <span class="kana">起</span>
+            <span class="kana">誰</span>
+            <span class="kana">作</span>
+            <span class="kana">文</span>
+            <span class="kana">歴</span>
+            <span class="kana">連</span>
+            <span class="kana">跡</span>
+        </div>
+
+        <!-- Social Links -->
+        <div class="sidebar-bottom">
+            <div class="sidebar-status">
+                <span class="status-label">status</span>
+                <span class="status-value"><span class="status-dot-sm"></span> ONLINE</span>
+            </div>
+            <div class="sidebar-status">
+                <span class="status-label">node</span>
+                <span class="status-value">us-east</span>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/sh4i-yurei" target="_blank">github</a>
+                <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================================
+         MAIN COLUMN
+         Top bar + page content
+    ============================================================ -->
+    <main>
+
+        <!-- --------------------------------------------------------
+             TOP BAR
+             Traffic lights, page prompt, clock
+        -------------------------------------------------------- -->
+        <header>
+            <div class="traffic-lights">
+                <span class="tl-red"></span>
+                <span class="tl-amber"></span>
+                <span class="tl-green"></span>
+            </div>
+            <div class="prompt">mark@traceroute.dev:~/<span class="path">stdout</span>$</div>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <!-- --------------------------------------------------------
+             PAGE CONTENT
+        -------------------------------------------------------- -->
+
+        <!-- --------------------------------------------------------
+             PAGE HEADING
+        -------------------------------------------------------- -->
+        <div class="page-hero">
+            <h1 class="page-title">Notes from the <span class="accent">Build</span><span class="caret">▋</span></h1>
+        </div>
+        <p class="projects-subtitle">What I'm learning as I go, written down while it's fresh. Filter by tag.</p>
+
+        <!-- --------------------------------------------------------
+             FILTER BAR
+             Buttons filter the post list by tag (see initBlogFilter)
+        -------------------------------------------------------- -->
+        <div class="blog-filters" id="blog-filters">
+            <button class="filter-btn active" data-filter="all">all</button>
+            <button class="filter-btn" data-filter="networking">networking</button>
+            <button class="filter-btn" data-filter="security">security</button>
+            <button class="filter-btn" data-filter="homelab">homelab</button>
+            <button class="filter-btn" data-filter="dev">dev</button>
+            <button class="filter-btn" data-filter="linux">linux</button>
+            <button class="filter-btn" data-filter="life">life</button>
+            <span class="filter-count" id="filter-count"></span>
+        </div>
+
+        <!-- --------------------------------------------------------
+             POST LIST
+             data-tags drives the filter; clicking a row expands the
+             body (see initBlogAccordion). id targets deep links.
+        -------------------------------------------------------- -->
+        <div class="blog-list">
+
+            <article class="post-item" id="homelab" data-tags="homelab networking security">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-07-05</span>
+                    <span class="post-title">Standing up a five-Pi home lab: DNS, k3s, and keeping fate separate</span>
+                    <span class="post-tags"><span class="tag-lab">#homelab</span> <span class="tag-net">#networking</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="pong" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-06-28</span>
+                    <span class="post-title">Finishing Pong: win screens, rematches, and a stubborn collision bug</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                </div>
+            </article>
+
+            <article class="post-item" data-tags="homelab networking">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-06-20</span>
+                    <span class="post-title">Pi-hole times two: why DNS gets its own hardware</span>
+                    <span class="post-tags"><span class="tag-lab">#homelab</span> <span class="tag-net">#networking</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="threat-intel" data-tags="security">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-06-12</span>
+                    <span class="post-title">Reading a live threat feed with STIX and TAXII</span>
+                    <span class="post-tags"><span class="tag-sec">#security</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" data-tags="networking security">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-05-22</span>
+                    <span class="post-title">Wireshark notes: watching a TCP handshake byte by byte</span>
+                    <span class="post-tags"><span class="tag-net">#networking</span> <span class="tag-sec">#security</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                </div>
+            </article>
+
+            <article class="post-item" data-tags="linux homelab">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-05-10</span>
+                    <span class="post-title">One SSH key, every Pi: passwordless access across the lab</span>
+                    <span class="post-tags"><span class="tag-linux">#linux</span> <span class="tag-lab">#homelab</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.</p>
+                </div>
+            </article>
+
+            <article class="post-item" data-tags="life">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-05-01</span>
+                    <span class="post-title">Why I went back to school at 46</span>
+                    <span class="post-tags"><span class="tag-life">#life</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="dev-server" data-tags="homelab">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-04-25</span>
+                    <span class="post-title">Speccing out a virtualization host for the lab</span>
+                    <span class="post-tags"><span class="tag-lab">#homelab</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="wiki" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-04-18</span>
+                    <span class="post-title">Self-hosting my own wiki with Flask</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="tracker" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-04-11</span>
+                    <span class="post-title">A dashboard for tracking my own projects</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="honeypot" data-tags="security">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-04-04</span>
+                    <span class="post-title">Building a honeypot to catch pokes on the network</span>
+                    <span class="post-tags"><span class="tag-sec">#security</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="chip8" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-03-28</span>
+                    <span class="post-title">Writing a CHIP-8 emulator from scratch</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="fractal" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-03-21</span>
+                    <span class="post-title">Zooming forever: a Mandelbrot explorer</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="tetris" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-03-14</span>
+                    <span class="post-title">Tetris: rotation math and clearing lines</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                </div>
+            </article>
+
+            <article class="post-item" id="breakout" data-tags="dev">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-03-07</span>
+                    <span class="post-title">From Pong to Breakout: bricks, levels, and power-ups</span>
+                    <span class="post-tags"><span class="tag-dev">#dev</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                </div>
+            </article>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

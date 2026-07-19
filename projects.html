@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<!--
+   keepbreath.ing
+   Author:  Mark Thompson
+   Date:   2026-06-05
+
+   Filename: projects.html
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Breathing — make</title>
+    <link href="styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet" />
+    <script src="support.js" defer></script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         BACKGROUND CANVAS LAYERS
+         Phantom code + scan line — fixed, behind everything
+    ============================================================ -->
+    <canvas id="phantom" class="phantom"></canvas>
+    <div class="scanline" data-scan></div>
+    <div class="crt-overlay"></div>
+
+
+    <!-- ============================================================
+         SIDEBAR
+         Brand, status dot, navigation, social links
+    ============================================================ -->
+    <aside>
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-top">
+                <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
+                <span class="status-dot"></span>
+            </div>
+            <div class="subtitle">traceroute.dev</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-label"># navigation</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">init</a></li>
+                <li><a href="about.html">whois</a></li>
+                <li><a href="projects.html" class="active">make</a></li>
+                <li><a href="blog.html">stdout</a></li>
+                <li><a href="resume.html">cat resume.txt</a></li>
+                <li><a href="contact.html">sendmail</a></li>
+                <li><a href="journey.html">uptime</a></li>
+            </ul>
+        </nav>
+
+        <!-- Kana decorative overlay -->
+        <div class="kana-overlay">
+            <span class="kana">起</span>
+            <span class="kana">誰</span>
+            <span class="kana">作</span>
+            <span class="kana">文</span>
+            <span class="kana">歴</span>
+            <span class="kana">連</span>
+            <span class="kana">跡</span>
+        </div>
+
+        <!-- Social Links -->
+        <div class="sidebar-bottom">
+            <div class="sidebar-status">
+                <span class="status-label">status</span>
+                <span class="status-value"><span class="status-dot-sm"></span> ONLINE</span>
+            </div>
+            <div class="sidebar-status">
+                <span class="status-label">node</span>
+                <span class="status-value">us-east</span>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/sh4i-yurei" target="_blank">github</a>
+                <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================================
+         MAIN COLUMN
+         Top bar + page content
+    ============================================================ -->
+    <main>
+
+        <!-- --------------------------------------------------------
+             TOP BAR
+             Traffic lights, page prompt, clock
+        -------------------------------------------------------- -->
+        <header>
+            <div class="traffic-lights">
+                <span class="tl-red"></span>
+                <span class="tl-amber"></span>
+                <span class="tl-green"></span>
+            </div>
+            <div class="prompt">mark@traceroute.dev:~/<span class="path">make</span>$</div>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <!-- --------------------------------------------------------
+             PAGE CONTENT
+        -------------------------------------------------------- -->
+
+        <!-- --------------------------------------------------------
+             PAGE HEADING
+        -------------------------------------------------------- -->
+        <div class="page-hero">
+            <h1 class="page-title">What I'm <span class="accent">Building</span><span class="caret">▋</span></h1>
+        </div>
+        <p class="projects-subtitle">Infrastructure I run and code I write for the love of it — roughly ordered from what's live today to what's still on the bench.</p>
+
+        <!-- --------------------------------------------------------
+             INFRASTRUCTURE
+             Home lab, threat intel, dev server
+        -------------------------------------------------------- -->
+        <div class="section-label"># infrastructure</div>
+        <div class="projects-grid">
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Home Lab</h3>
+                    <span class="project-status active">active</span>
+                </div>
+                <p class="project-desc">Five Raspberry Pis on an isolated lab network. A dedicated pair runs dual Pi-hole DNS and a time server; the rest form a self-healing k3s cluster for monitoring and security tooling. My hands-on ground for network admin, defense, and self-hosting.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-net">k3s</span>
+                    <span class="chip chip-tool">Ansible</span>
+                    <span class="chip chip-net">Pi-hole</span>
+                    <span class="chip chip-sys">Grafana</span>
+                    <span class="chip chip-sec">Wazuh</span>
+                    <span class="chip chip-net">MikroTik</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#homelab">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Threat Intel Feed</h3>
+                    <span class="project-status idea">idea</span>
+                </div>
+                <p class="project-desc">Pull live threat data from MITRE's TAXII server, parse the STIX records, and surface them as a feed widget — then stand up my own TAXII server to understand both sides. STIX is the language, TAXII is the mail truck.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-sec">STIX</span>
+                    <span class="chip chip-sec">TAXII</span>
+                    <span class="chip chip-tool">Flask</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#threat-intel">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Dev Server</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">One powerful virtualization host running disposable VMs on demand — dev environments per project, a staging mirror of production, and a self-contained security range. Snapshot before something risky, roll back in seconds.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-net">Virtualization</span>
+                    <span class="chip chip-net">Snapshots</span>
+                    <span class="chip chip-net">VLANs</span>
+                    <span class="chip chip-sec">Security Range</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#dev-server">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+        </div>
+
+        <!-- --------------------------------------------------------
+             CODE
+             Programming projects — games, tools, low-level
+        -------------------------------------------------------- -->
+        <div class="section-label"># code</div>
+        <div class="projects-grid">
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Pong</h3>
+                    <span class="project-status progress">in progress</span>
+                </div>
+                <p class="project-desc">Two-player Pong in Python — ball and paddle classes, scoring, and game states all working. Left to do: the winner screen, a rematch flow, and a collision bug where a fast ball can stick inside a paddle.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-tool">Pygame</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#pong">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Breakout</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">The natural next step after Pong. The paddle-and-ball engine carries straight over, then adds a wall of breakable bricks, multiple levels, and power-ups — my first taste of real game structure.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-tool">Pygame</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#breakout">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Tetris</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">A real jump in game logic: pieces that fall and rotate, a grid that fills, rows that clear when complete, and speed that ramps up. The rotation and line-clearing rules are a genuinely satisfying puzzle to work out.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-tool">Pygame</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#tetris">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Honeypot</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">A fake service that looks worth attacking but really just logs everyone who pokes at it. It drops into the home lab as an early-warning tripwire — if something starts probing, I know a bot or a person is nosing around.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-sec">Security</span>
+                    <span class="chip chip-net">Networking</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#honeypot">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>CHIP-8 Emulator</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">Run real vintage CHIP-8 games by teaching my program to read and carry out another machine's instructions one at a time — the classic first emulator. By the end I'll understand how a processor fetches and runs code from the inside.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-sys">Emulation</span>
+                    <span class="chip chip-sys">Low-level</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#chip8">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Fractal Explorer</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">Endless zoom into the Mandelbrot set — infinite, hypnotic detail for surprisingly little code. A natural excuse to later learn how to make code run fast, and a good candidate to rewrite in Rust to feel the difference.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-sys">Math</span>
+                    <span class="chip chip-sys">Graphics</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#fractal">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Self-Hosted Wiki</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">My own private knowledge base — a site where I write and link notes, like a personal Wikipedia. Built in Flask and deployed live to my DigitalOcean box over SSH. The real value is doing the whole loop: build it, ship it, run it.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-tool">Flask</span>
+                    <span class="chip chip-net">DigitalOcean</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#wiki">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+            <article class="project-card">
+                <div class="project-card-top">
+                    <h3>Dev-Project Tracker</h3>
+                    <span class="project-status planned">planned</span>
+                </div>
+                <p class="project-desc">A dashboard for my own coding projects — what's active, what's parked, the to-do list for each, and how far along things are. A tool I'd actually use; this very list of projects is basically its first set of data.</p>
+                <div class="skill-chips">
+                    <span class="chip chip-lang">Python</span>
+                    <span class="chip chip-tool">Flask</span>
+                    <span class="chip chip-sys">SQLite</span>
+                </div>
+                <div class="project-links">
+                    <a href="blog.html#tracker">&rarr; read the writeup</a>
+                </div>
+            </article>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

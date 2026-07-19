@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<!--
+   keepbreath.ing
+   Author:  Mark Thompson
+   Date:   2026-06-05
+
+   Filename: journey.html
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Breathing — uptime</title>
+    <link href="styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet" />
+    <script src="support.js" defer></script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         BACKGROUND CANVAS LAYERS
+         Phantom code + scan line — fixed, behind everything
+    ============================================================ -->
+    <canvas id="phantom" class="phantom"></canvas>
+    <div class="scanline" data-scan></div>
+    <div class="crt-overlay"></div>
+
+
+    <!-- ============================================================
+         SIDEBAR
+         Brand, status dot, navigation, social links
+    ============================================================ -->
+    <aside>
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-top">
+                <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
+                <span class="status-dot"></span>
+            </div>
+            <div class="subtitle">traceroute.dev</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-label"># navigation</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">init</a></li>
+                <li><a href="about.html">whois</a></li>
+                <li><a href="projects.html">make</a></li>
+                <li><a href="blog.html">stdout</a></li>
+                <li><a href="resume.html">cat resume.txt</a></li>
+                <li><a href="contact.html">sendmail</a></li>
+                <li><a href="journey.html" class="active">uptime</a></li>
+            </ul>
+        </nav>
+
+        <!-- Kana decorative overlay -->
+        <div class="kana-overlay">
+            <span class="kana">起</span>
+            <span class="kana">誰</span>
+            <span class="kana">作</span>
+            <span class="kana">文</span>
+            <span class="kana">歴</span>
+            <span class="kana">連</span>
+            <span class="kana">跡</span>
+        </div>
+
+        <!-- Social Links -->
+        <div class="sidebar-bottom">
+            <div class="sidebar-status">
+                <span class="status-label">status</span>
+                <span class="status-value"><span class="status-dot-sm"></span> ONLINE</span>
+            </div>
+            <div class="sidebar-status">
+                <span class="status-label">node</span>
+                <span class="status-value">us-east</span>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/sh4i-yurei" target="_blank">github</a>
+                <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================================
+         MAIN COLUMN
+         Top bar + page content
+    ============================================================ -->
+    <main>
+
+        <!-- --------------------------------------------------------
+             TOP BAR
+             Traffic lights, page prompt, clock
+        -------------------------------------------------------- -->
+        <header>
+            <div class="traffic-lights">
+                <span class="tl-red"></span>
+                <span class="tl-amber"></span>
+                <span class="tl-green"></span>
+            </div>
+            <div class="prompt">mark@traceroute.dev:~/<span class="path">uptime</span>$</div>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <!-- --------------------------------------------------------
+             PAGE CONTENT
+        -------------------------------------------------------- -->
+
+    </main>
+
+</body>
+
+</html>

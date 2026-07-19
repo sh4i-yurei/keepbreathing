@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!--
+   keepbreath.ing
+   Author:  Mark Thompson
+   Date:   2026-06-05
+
+   Filename: contact.html
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keep Breathing — sendmail</title>
+    <link href="styles.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap"
+    rel="stylesheet" />
+    <script src="support.js" defer></script>
+</head>
+
+<body>
+
+    <!-- ============================================================
+         BACKGROUND CANVAS LAYERS
+         Phantom code + scan line — fixed, behind everything
+    ============================================================ -->
+    <canvas id="phantom" class="phantom"></canvas>
+    <div class="scanline" data-scan></div>
+    <div class="crt-overlay"></div>
+
+
+    <!-- ============================================================
+         SIDEBAR
+         Brand, status dot, navigation, social links
+    ============================================================ -->
+    <aside>
+
+        <!-- Brand -->
+        <div class="brand">
+            <div class="brand-top">
+                <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
+                <span class="status-dot"></span>
+            </div>
+            <div class="subtitle">traceroute.dev</div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-label"># navigation</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">init</a></li>
+                <li><a href="about.html">whois</a></li>
+                <li><a href="projects.html">make</a></li>
+                <li><a href="blog.html">stdout</a></li>
+                <li><a href="resume.html">cat resume.txt</a></li>
+                <li><a href="contact.html" class="active">sendmail</a></li>
+                <li><a href="journey.html">uptime</a></li>
+            </ul>
+        </nav>
+
+        <!-- Kana decorative overlay -->
+        <div class="kana-overlay">
+            <span class="kana">起</span>
+            <span class="kana">誰</span>
+            <span class="kana">作</span>
+            <span class="kana">文</span>
+            <span class="kana">歴</span>
+            <span class="kana">連</span>
+            <span class="kana">跡</span>
+        </div>
+
+        <!-- Social Links -->
+        <div class="sidebar-bottom">
+            <div class="sidebar-status">
+                <span class="status-label">status</span>
+                <span class="status-value"><span class="status-dot-sm"></span> ONLINE</span>
+            </div>
+            <div class="sidebar-status">
+                <span class="status-label">node</span>
+                <span class="status-value">us-east</span>
+            </div>
+            <div class="social-links">
+                <a href="https://github.com/sh4i-yurei" target="_blank">github</a>
+                <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
+            </div>
+        </div>
+
+    </aside>
+
+
+    <!-- ============================================================
+         MAIN COLUMN
+         Top bar + page content
+    ============================================================ -->
+    <main>
+
+        <!-- --------------------------------------------------------
+             TOP BAR
+             Traffic lights, page prompt, clock
+        -------------------------------------------------------- -->
+        <header>
+            <div class="traffic-lights">
+                <span class="tl-red"></span>
+                <span class="tl-amber"></span>
+                <span class="tl-green"></span>
+            </div>
+            <div class="prompt">mark@traceroute.dev:~/<span class="path">sendmail</span>$</div>
+            <div class="clock" id="clock"></div>
+        </header>
+
+        <!-- --------------------------------------------------------
+             PAGE CONTENT
+        -------------------------------------------------------- -->
+        <!-- two-column: heading + form on the left, graphic centered in the open space on the right -->
+        <div class="contact-layout">
+
+            <div class="contact-left">
+                <!-- page heading (matches the other pages) -->
+                <div class="page-hero">
+                    <h1 class="page-title">Get in <span class="accent">Touch</span><span class="caret">▋</span></h1>
+                </div>
+                <p class="projects-subtitle">Drop me a line and I'll get back to you.</p>
+
+                <!-- confirmation message appears here — above the form so it's seen -->
+                <div id="cf-result"></div>
+
+                <!-- contact form -->
+                <form id="contact-form" class="contact-form" novalidate>
+                    <label for="cf-name">name</label>
+                    <input id="cf-name" type="text" placeholder="your name">
+
+                    <label for="cf-email">email</label>
+                    <input id="cf-email" type="text" placeholder="you@example.com">
+
+                    <label for="cf-message">message</label>
+                    <textarea id="cf-message" rows="6" placeholder="what's on your mind?"></textarea>
+
+                    <button type="submit">send</button>
+                </form>
+            </div>
+
+            <!-- sendmail graphic — centered in the space to the right, top-aligned with the heading -->
+            <div class="contact-right">
+                <img class="contact-image" src="images/sendmail.jpg" alt="A retro terminal screen sending an email that dissolves into a stream of data" width="667" height="1000">
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+
+</html>

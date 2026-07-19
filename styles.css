@@ -1,0 +1,1129 @@
+@charset "utf-8";
+
+/*
+   keepbreath.ing
+   Author:  Mark Thompson
+   Date:   2026-06-05
+
+   Filename: styles.css
+*/
+
+
+/* =====================
+   Base & Reset
+   ===================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg:          #08090c;
+    --panel:       #0b0d11;
+    --panel-2:     #0a0c10;
+    --border:      #1a1e27;
+    --border-2:    #2a303c;
+    --text:        #cdd6f4;
+    --text-bright: #e6ebf7;
+    --text-dim:    #717a90;
+    --text-faint:  #4b5365;
+    --cyan:        #00ffd1;
+    --magenta:     #ff2e88;
+    --amber:       #ffcc66;
+    --green:       #39ff14;
+    --purple:      #b06bff;
+    --panel-hover: #12151b;
+}
+
+
+/* =====================
+   Typography
+   ===================== */
+
+html, body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+    font-size: 15px;
+    line-height: 1.7;
+}
+
+
+/* =====================
+   Layout & Structure
+   ===================== */
+body {
+    display: flex;
+    min-height: 100vh;
+}
+
+aside {
+   width: 264px;
+   height: 100vh;
+   position: fixed;
+   top: 0;
+   left: 0;
+   background-color: var(--panel);
+   border-right: 1px solid var(--border);
+   display: flex;
+   flex-direction: column;
+}
+
+main {
+   margin-left: 264px;
+   flex: 1;
+}
+
+/* Content images sit above the phantom code (z-48) but below the scanline (z-51),
+   so the scanline still sweeps over them */
+main img {
+   position: relative;
+   z-index: 50;
+}
+
+/* =====================
+   Header & Navigation
+   ===================== */
+header {
+   position: sticky;
+   top: 0;
+   height: 48px;
+   background-color: var(--panel);
+   border-bottom: 1px solid var(--border);
+   z-index: 100;
+   display: flex;
+   align-items: center;
+}
+
+.traffic-lights {
+   display: flex;
+   gap: 6px;
+   padding: 0 16px;
+}
+
+.tl-red,
+.tl-amber,
+.tl-green {
+   width: 12px;
+   height: 12px;
+   border-radius: 50%;
+}
+
+.tl-red { background-color: var(--magenta); }
+.tl-amber { background-color: var(--amber); }
+.tl-green { background-color: var(--green); }
+
+.prompt {
+   flex: 1;
+   font-size: 13px;
+   color: var(--text-dim);
+   padding: 0 16px;
+}
+
+.prompt .path {
+   color: var(--cyan);
+}
+
+.clock {
+   font-size: 12px;
+   color: var(--text-dim);
+   padding-right: 16px;
+}
+
+nav {
+   padding: 24px 0;
+   display: flex;
+   flex-direction: column;
+}
+
+nav {
+   padding: 8px 0;
+   display: flex;
+   flex-direction: column;
+   flex: 1;
+}
+
+nav ul {
+   list-style: none;
+   padding: 0;
+}
+
+.kana-overlay {
+   position: absolute;
+   top: 90px;
+   bottom: 120px;
+   right: 0;
+   pointer-events: none;
+   display: flex;
+   flex-direction: column;
+   justify-content: space-between;
+}
+
+.kana {
+   font-family: "Noto Sans JP", sans-serif;
+   font-size: calc(100vh / 14);
+   font-weight: 700;
+   color: var(--text-bright);
+   opacity: 0.7;
+   text-shadow: 0 0 16px var(--cyan), 0 0 8px var(--cyan);
+   text-align: right;
+   padding-right: 40px;
+   line-height: 1;
+}
+
+nav a {
+   display: block;
+   padding: 3px 24px;
+   color: var(--text);
+   text-decoration: none;
+   font-size: 13px;
+}
+
+nav a::before {
+   content: "\25B8";
+   color: var(--magenta);
+}
+
+nav a:hover {
+   background-color: var(--panel-hover);
+   color: var(--cyan);
+}
+
+nav a.active {
+   color: var(--cyan);
+   border-left: 2px solid var(--cyan);
+   background-color: var(--panel-hover);
+}
+
+.nav-label {
+   padding: 8px 24px 4px;
+   font-size: 16px;
+   color: var(--green);
+   letter-spacing: 0.05em;
+   text-shadow: 0 0 8px var(--green), 0 0 16px var(--green);
+   animation: nav-pulse 4s ease-in-out infinite;
+}
+
+@keyframes nav-pulse {
+   0%, 100% { opacity: 1; }
+   50%       { opacity: 0.3; }
+}
+
+.sidebar-bottom {
+   margin-top: auto;
+   padding: 16px 24px;
+   border-top: 1px solid var(--border);
+}
+
+.sidebar-status {
+   display: flex;
+   justify-content: space-between;
+   font-size: 11px;
+   color: var(--text-dim);
+   margin-bottom: 6px;
+}
+
+.status-label {
+   color: var(--text-faint);
+}
+
+.status-dot-sm {
+   display: inline-block;
+   width: 6px;
+   height: 6px;
+   border-radius: 50%;
+   background-color: var(--green);
+}
+
+.social-links {
+   display: flex;
+   gap: 16px;
+   margin-top: 12px;
+}
+
+.social-links a {
+   font-size: 11px;
+   color: var(--text-dim);
+   text-decoration: none;
+}
+
+.social-links a:hover {
+   color: var(--cyan);
+}
+
+
+.brand {
+   padding: 16px 24px 12px;
+   border-bottom: 1px solid var(--border);
+}
+
+.brand-top {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+}
+
+.brand a {
+   color: var(--text-bright);
+   text-decoration: none;
+   font-size: 16px;
+   font-weight: 700;
+}
+
+.brand .dot {
+   color: var(--cyan);
+}
+
+.subtitle {
+   color: var(--text-dim);
+   font-size: 11px;
+   margin-top: 4px;
+}
+
+@keyframes pulse {
+   0%, 100% { opacity: 1; }
+   50% { opacity: 0.3; }
+}
+
+.status-dot {
+   width: 8px;
+   height: 8px;
+   border-radius: 50%;
+   background-color: var(--green);
+   animation: pulse 4s infinite;
+}
+
+/* =====================
+   Hero / Home Section
+   ===================== */
+#matrix {
+   position: fixed;
+   top: 48px; /* below topbar */
+   left: 264px; /* beside sidebar */
+   right: 0;
+   bottom: 0;
+   width: auto;
+   height: auto;
+   opacity: 1;
+   z-index: 2;
+   pointer-events: none;
+}
+
+
+.terminal-window {
+   margin: 8px 44px 0;
+   border: 1px solid var(--border-2);
+   border-radius: 6px;
+   overflow: hidden;
+   background-color: var(--panel-2);
+   position: relative;
+   z-index: 10;
+}
+
+.terminal-titlebar {
+   display: flex;
+   align-items: center;
+   gap: 6px;
+   padding: 6px 12px;
+   background-color: var(--panel);
+   border-bottom: 1px solid var(--border);
+}
+
+.terminal-title {
+   margin-left: 8px;
+   font-size: 11px;
+   color: var(--text-dim);
+}
+
+.terminal-body {
+   padding: 10px 16px;
+   height: 160px;
+   overflow: hidden;
+}
+
+#boot {
+   font-size: 11px;
+   line-height: 1.4;
+   color: var(--text-dim);
+}
+
+.ok {
+   color: var(--green);
+}
+
+.boot-prompt {
+   color: var(--cyan);
+   margin-top: 8px;
+}
+
+.boot-command {
+   color: var(--text-bright);
+}
+
+.hidden {
+   opacity: 0;
+   pointer-events: none;
+}
+
+.page-content {
+   opacity: 0;
+}
+
+.page-content.visible {
+   animation: crt-reveal 3s steps(20) forwards;
+   pointer-events: all;
+}
+
+.ctas {
+   display: flex;
+   gap: 16px;
+   padding: 0 44px 32px;
+}
+
+.cta-primary {
+   border: 1px solid var(--cyan);
+   color: var(--cyan);
+   padding: 10px 20px;
+   text-decoration: none;
+   font-size: 13px;
+}
+
+.cta-secondary {
+   border: 1px solid var(--border-2);
+   color: var(--text-dim);
+   padding: 10px 20px;
+   text-decoration: none;
+   font-size: 13px;
+}
+
+.cta-primary:hover {
+   background-color: var(--cyan);
+   color: var(--bg);
+}
+
+.cta-secondary:hover {
+   background-color: var(--border-2);
+   color: var(--text-bright);
+}
+
+.stats-row {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 16px;
+   padding: 0 44px 32px;
+}
+
+.stat-card {
+   background-color: var(--panel);
+   border: 1px solid var(--border);
+   padding: 24px;
+}
+
+.stat-value {
+   font-size: 24px;
+   font-weight: 700;
+   color: var(--cyan);
+}
+
+.stat-label {
+   font-size: 11px;
+   color: var(--text-faint);
+   margin-top: 8px;
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+}
+
+.recent-posts {
+   float: right;
+   width: calc(100% - 680px);
+   margin: 0 44px 24px 24px;
+   background-color: var(--panel);
+   border: 1px solid var(--border);
+   padding: 16px;
+}
+
+.recent-posts-header {
+   font-size: 12px;
+   color: var(--text-faint);
+   margin-bottom: 16px;
+}
+
+.post-entry {
+   display: flex;
+   align-items: baseline;
+   gap: 16px;
+   padding: 10px 0;
+   border-bottom: 1px solid var(--border);
+}
+
+.post-date {
+   font-size: 11px;
+   color: var(--text-faint);
+   white-space: nowrap;
+}
+
+.post-title {
+   color: var(--text);
+   text-decoration: none;
+   font-size: 13px;
+   flex: 1;
+}
+
+.post-title:hover {
+   color: var(--cyan);
+}
+
+.post-tags {
+   font-size: 11px;
+   white-space: nowrap;
+}
+
+.tag-web   { color: var(--cyan); }
+.tag-net   { color: var(--green); }
+.tag-sec   { color: var(--magenta); }
+.tag-lab   { color: var(--amber); }
+.tag-linux { color: var(--purple); }
+.tag-life  { color: var(--text-dim); }
+
+.all-posts {
+   display: inline-block;
+   margin-top: 12px;
+   font-size: 12px;
+   color: var(--cyan);
+   text-decoration: none;
+}
+
+.all-posts:hover {
+   text-decoration: underline;
+}
+
+.hero-heading {
+   padding: 8px 44px 8px;
+   font-size: 24px;
+   color: var(--text-bright);
+}
+
+.accent {
+   color: var(--cyan);
+}
+
+.caret {
+   color: var(--magenta);
+   animation: blink 1s infinite;
+}
+
+@keyframes blink {
+   0%, 100% { opacity: 1; }
+   50% { opacity: 0; }
+}
+
+@keyframes crt-glitch {
+   0%   { transform: translate(0); filter: none; }
+   10%  { transform: translate(-8px, 2px) skewX(-2deg); filter: hue-rotate(30deg) brightness(1.3); }
+   20%  { transform: translate(8px, -2px) skewX(2deg); filter: hue-rotate(-20deg); }
+   30%  { transform: translate(-4px, 0) skewX(-1deg); filter: hue-rotate(15deg); }
+   40%  { transform: translate(4px, 3px); filter: none; }
+   50%  { transform: translate(-6px, -1px) skewX(1.5deg); filter: hue-rotate(-30deg) brightness(0.9); }
+   60%  { transform: translate(0); filter: none; }
+   70%  { transform: translate(-3px, 1px) skewX(-0.5deg); filter: hue-rotate(10deg); }
+   100% { transform: translate(0); filter: none; }
+}
+
+body.glitching {
+   animation: crt-glitch 0.4s steps(1) forwards;
+}
+
+.intro {
+   padding: 0 44px 32px;
+   max-width: 720px;
+   color: var(--text);
+}
+
+.intro p + p {
+   margin-top: 16px;
+}
+
+.namaste {
+   font-size: 1.2em;
+   color: var(--green);
+}
+
+/* =====================
+   About Section
+   ===================== */
+/* Shared page heading — same style on every content page.
+   The key word is wrapped in .accent for the two-tone cyan look. */
+.page-hero {
+   padding: 16px 44px 8px;
+}
+
+.page-title {
+   font-size: 42px;
+   color: var(--text-bright);
+}
+
+
+.about-intro {
+   padding: 8px 44px 24px;
+   max-width: 860px;
+   color: var(--text);
+}
+
+.about-intro p + p {
+   margin-top: 16px;
+}
+
+.about-quote {
+   margin: 0 44px 16px;
+   padding: 14px 20px;
+   border-left: 3px solid var(--cyan);
+   background-color: var(--panel);
+}
+
+.about-quote p {
+   font-size: 18px;
+   color: var(--text-bright);
+   font-style: italic;
+}
+
+.about-quote cite {
+   display: block;
+   margin-top: 10px;
+   font-size: 12px;
+   color: var(--text-dim);
+   font-style: normal;
+}
+
+.headshot {
+   float: right;
+   clear: right;
+   width: 280px;
+   height: auto;
+   margin: 4px 44px 20px 24px;
+   border: 1px solid var(--border-2);
+   display: block;
+}
+
+.focus-ladder {
+   float: right;
+   clear: right;
+   width: 280px;
+   margin: 0 44px 24px 24px;
+   background-color: var(--panel);
+   border: 1px solid var(--border);
+   padding: 16px;
+}
+
+.milestone {
+   display: flex;
+   gap: 20px;
+   padding-bottom: 28px;
+   position: relative;
+}
+
+.milestone-dot {
+   width: 12px;
+   height: 12px;
+   border-radius: 50%;
+   margin-top: 4px;
+   flex-shrink: 0;
+}
+
+.milestone.active .milestone-dot   { background-color: var(--green); }
+.milestone.planned .milestone-dot  { background-color: var(--amber); }
+.milestone.future .milestone-dot   { background-color: var(--purple); }
+
+.milestone-date {
+   font-size: 11px;
+   color: var(--text-faint);
+   display: block;
+   margin-bottom: 4px;
+}
+
+.milestone-content h3 {
+   font-size: 14px;
+   color: var(--text-bright);
+}
+
+.milestone-content p {
+   font-size: 12px;
+   color: var(--text-dim);
+   margin-top: 2px;
+}
+
+.cert-chips {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+   margin-top: 8px;
+}
+
+.skills-grid {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 16px;
+   padding: 0 44px 32px;
+}
+
+.skill-card {
+   background-color: var(--panel);
+   border: 1px solid var(--border);
+   padding: 20px;
+}
+
+.skill-card h3 {
+   font-size: 12px;
+   color: var(--cyan);
+   text-transform: uppercase;
+   letter-spacing: 0.1em;
+   margin-bottom: 14px;
+   padding-bottom: 8px;
+   border-bottom: 1px solid var(--border);
+}
+
+.skill-chips {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 8px;
+}
+
+.chip {
+   font-size: 11px;
+   color: var(--text-dim);
+   background-color: var(--panel-2);
+   border: 1px solid var(--border-2);
+   padding: 4px 10px;
+}
+
+/* Semantic chip colors — shared by skill cards + project cards.
+   Colored text with a matching border so each tag reads as its category. */
+.chip-lang { color: var(--cyan);    border-color: var(--cyan); }
+.chip-tool { color: var(--purple);  border-color: var(--purple); }
+.chip-net  { color: var(--green);   border-color: var(--green); }
+.chip-sec  { color: var(--magenta); border-color: var(--magenta); }
+.chip-sys  { color: var(--amber);   border-color: var(--amber); }
+
+
+/* =====================
+   Projects Section
+   ===================== */
+
+
+.projects-subtitle {
+   padding: 4px 44px 8px;
+   max-width: 820px;
+   color: var(--text-dim);
+   font-size: 14px;
+}
+
+.section-label {
+   padding: 20px 44px 10px;
+   font-size: 12px;
+   letter-spacing: 0.1em;
+   color: var(--text-faint);
+}
+
+.projects-grid {
+   display: grid;
+   grid-template-columns: 1fr 1fr;
+   gap: 16px;
+   padding: 0 44px 8px;
+}
+
+.project-card {
+   background-color: var(--panel);
+   border: 1px solid var(--border);
+   padding: 20px;
+   display: flex;
+   flex-direction: column;
+   transition: border-color 0.2s, background-color 0.2s;
+}
+
+.project-card:hover {
+   border-color: var(--border-2);
+   background-color: var(--panel-hover);
+}
+
+.project-card-top {
+   display: flex;
+   align-items: baseline;
+   justify-content: space-between;
+   gap: 12px;
+   margin-bottom: 12px;
+   padding-bottom: 10px;
+   border-bottom: 1px solid var(--border);
+}
+
+.project-card-top h3 {
+   font-size: 15px;
+   color: var(--text-bright);
+}
+
+.project-status {
+   font-size: 10px;
+   text-transform: uppercase;
+   letter-spacing: 0.08em;
+   padding: 3px 8px;
+   border: 1px solid var(--border-2);
+   white-space: nowrap;
+   flex-shrink: 0;
+}
+
+.project-status::before {
+   content: "\25CF  ";
+}
+
+.project-status.active   { color: var(--green); }
+.project-status.progress { color: var(--cyan); }
+.project-status.planned  { color: var(--amber); }
+.project-status.idea     { color: var(--purple); }
+
+.project-desc {
+   font-size: 13px;
+   line-height: 1.6;
+   color: var(--text-dim);
+   margin-bottom: 14px;
+   flex-grow: 1;
+}
+
+.project-links {
+   margin-top: 14px;
+   padding-top: 12px;
+   border-top: 1px solid var(--border);
+}
+
+.project-links a {
+   font-size: 12px;
+   color: var(--cyan);
+}
+
+.project-links a:hover {
+   color: var(--text-bright);
+}
+
+
+/* =====================
+   Blog / Posts Section
+   ===================== */
+
+.tag-dev { color: var(--cyan); }
+
+.blog-filters {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 10px;
+   padding: 8px 44px 20px;
+}
+
+.filter-btn {
+   font-family: inherit;
+   font-size: 12px;
+   color: var(--text-dim);
+   background-color: var(--panel-2);
+   border: 1px solid var(--border-2);
+   padding: 5px 12px;
+   cursor: pointer;
+   transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+}
+
+.filter-btn::before {
+   content: "#";
+   color: inherit;
+   margin-right: 2px;
+}
+
+.filter-btn:hover {
+   background-color: var(--panel-hover);
+}
+
+.filter-btn.active {
+   color: var(--bg);
+   background-color: var(--cyan);
+   border-color: var(--cyan);
+}
+
+.filter-btn.active::before {
+   color: var(--bg);
+}
+
+/* Category filters carry the tag color schema (resting: colored text + border) */
+.filter-btn[data-filter="networking"] { color: var(--green);    border-color: var(--green); }
+.filter-btn[data-filter="security"]   { color: var(--magenta);  border-color: var(--magenta); }
+.filter-btn[data-filter="homelab"]    { color: var(--amber);    border-color: var(--amber); }
+.filter-btn[data-filter="dev"]        { color: var(--cyan);     border-color: var(--cyan); }
+.filter-btn[data-filter="linux"]      { color: var(--purple);   border-color: var(--purple); }
+.filter-btn[data-filter="life"]       { color: var(--text-dim); }
+
+/* Active: fill with that category's color, dark text */
+.filter-btn.active[data-filter="networking"] { color: var(--bg); background-color: var(--green);    border-color: var(--green); }
+.filter-btn.active[data-filter="security"]   { color: var(--bg); background-color: var(--magenta);  border-color: var(--magenta); }
+.filter-btn.active[data-filter="homelab"]    { color: var(--bg); background-color: var(--amber);    border-color: var(--amber); }
+.filter-btn.active[data-filter="dev"]        { color: var(--bg); background-color: var(--cyan);     border-color: var(--cyan); }
+.filter-btn.active[data-filter="linux"]      { color: var(--bg); background-color: var(--purple);   border-color: var(--purple); }
+.filter-btn.active[data-filter="life"]       { color: var(--bg); background-color: var(--text-dim); border-color: var(--text-dim); }
+
+.filter-count {
+   font-size: 11px;
+   color: var(--text-faint);
+   margin-left: auto;
+}
+
+.blog-list {
+   padding: 0 44px 32px;
+}
+
+.post-item {
+   border-bottom: 1px solid var(--border);
+}
+
+/* Filtered-out posts collapse fully (no leftover gap) */
+.post-item.is-hidden {
+   display: none;
+}
+
+/* Clickable header row — reset the button, lay it out like a post entry */
+.post-row {
+   display: flex;
+   align-items: baseline;
+   gap: 16px;
+   width: 100%;
+   padding: 14px 0;
+   background: none;
+   border: none;
+   font-family: inherit;
+   text-align: left;
+   cursor: pointer;
+}
+
+.post-row .post-title {
+   flex: 1;
+}
+
+.post-row:hover .post-title {
+   color: var(--cyan);
+}
+
+.post-toggle {
+   flex-shrink: 0;
+   width: 1em;
+   text-align: center;
+   font-size: 15px;
+   color: var(--text-faint);
+}
+
+.post-toggle::after {
+   content: "+";
+}
+
+.post-item.open .post-toggle {
+   color: var(--cyan);
+}
+
+.post-item.open .post-toggle::after {
+   content: "\2013";               /* en dash */
+}
+
+/* Collapsible body — hidden until the item is .open */
+.post-full {
+   display: none;
+   max-width: 780px;
+   padding: 0 0 18px;
+   color: var(--text-dim);
+   font-size: 13px;
+   line-height: 1.7;
+}
+
+.post-item.open .post-full {
+   display: block;
+}
+
+.post-full p + p {
+   margin-top: 12px;
+}
+
+
+/* =====================
+   Resume Section
+   ===================== */
+
+
+/* =====================
+   Contact Section
+   ===================== */
+.contact-layout {
+   display: flex;
+   align-items: stretch;
+   gap: 24px;
+   padding: 0 44px 0 0;
+}
+
+.contact-left {
+   flex: 0 1 640px;
+}
+
+.contact-right {
+   flex: 1;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+}
+
+.contact-form {
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+   padding: 0 44px;
+}
+
+.contact-form label {
+   font-size: 12px;
+   color: var(--text-faint);
+   margin-top: 14px;
+}
+
+.contact-form input,
+.contact-form textarea {
+   font-family: inherit;
+   font-size: 14px;
+   color: var(--text-bright);
+   background-color: var(--panel);
+   border: 1px solid var(--border-2);
+   padding: 10px 12px;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+   outline: none;
+   border-color: var(--cyan);
+}
+
+.contact-form button {
+   align-self: flex-start;
+   margin-top: 16px;
+   font-family: inherit;
+   color: var(--cyan);
+   background-color: var(--panel-2);
+   border: 1px solid var(--cyan);
+   padding: 8px 18px;
+   cursor: pointer;
+}
+
+.contact-form button:hover {
+   color: var(--bg);
+   background-color: var(--cyan);
+}
+
+#cf-result {
+   max-width: 560px;
+   margin: 4px 44px 20px;
+   padding: 12px 16px;
+   border-left: 3px solid var(--green);
+   background-color: var(--panel);
+   color: var(--green);
+   font-size: 14px;
+}
+
+#cf-result:empty {
+   display: none;
+}
+
+.contact-image {
+   width: 260px;
+   height: auto;
+   display: block;
+   transform: translateX(-10px);
+}
+
+
+/* =====================
+   Journey Section
+   ===================== */
+
+
+/* =====================
+   Footer
+   ===================== */
+
+
+/* =====================
+   Utility Classes
+   ===================== */
+
+/* Phantom code canvas — CRT power-on animation */
+@keyframes crt-power-on {
+   0%   { opacity: 0; filter: brightness(1); }
+   8%   { opacity: 0.9; filter: brightness(4); }
+   12%  { opacity: 0; filter: brightness(1); }
+   18%  { opacity: 0; }
+   30%  { opacity: 0.5; filter: brightness(2); }
+   36%  { opacity: 0.05; }
+   50%  { opacity: 0.35; filter: brightness(1.4); }
+   62%  { opacity: 0.1; }
+   78%  { opacity: 0.6; filter: brightness(1.2); }
+   90%  { opacity: 0.4; }
+   100% { opacity: 1; filter: brightness(1); }
+}
+
+@keyframes crt-reveal {
+   0%   { opacity: 0;    filter: sepia(1) brightness(0.2); }
+   5%   { opacity: 0.05; filter: sepia(1) brightness(0.3); }
+   10%  { opacity: 0.08; filter: sepia(0.9) brightness(0.35); }
+   15%  { opacity: 0.06; filter: sepia(0.9) brightness(0.3); }
+   22%  { opacity: 0.18; filter: sepia(0.7) brightness(0.5); }
+   28%  { opacity: 0.14; filter: sepia(0.7) brightness(0.45); }
+   36%  { opacity: 0.38; filter: sepia(0.5) brightness(0.65); }
+   43%  { opacity: 0.30; filter: sepia(0.5) brightness(0.6); }
+   52%  { opacity: 0.58; filter: sepia(0.3) brightness(0.8); }
+   60%  { opacity: 0.50; filter: sepia(0.2) brightness(0.75); }
+   70%  { opacity: 0.75; filter: sepia(0.1) brightness(0.9); }
+   80%  { opacity: 0.70; filter: sepia(0.05) brightness(0.88); }
+   90%  { opacity: 0.90; filter: brightness(1.02); }
+   100% { opacity: 1;    filter: brightness(1); }
+}
+
+.phantom {
+   position: fixed;
+   inset: 0;
+   width: 100%;
+   height: 100%;
+   pointer-events: none;
+   opacity: 0;
+   z-index: 48;
+   mix-blend-mode: screen;
+}
+
+/* Scan line — cyan bar sweeping top to bottom */
+@keyframes scan {
+   0%   { transform: translateY(0); }
+   100% { transform: translateY(100vh); }
+}
+
+.scanline {
+   position: fixed;
+   left: 0;
+   right: 0;
+   top: 0;
+   height: 90px;
+   background: linear-gradient(rgba(0, 255, 209, 0.07), transparent);
+   animation: scan 7s linear infinite;
+   pointer-events: none;
+   z-index: 51;
+}
+
+/* CRT overlay — faint horizontal scanlines + vignette */
+.crt-overlay {
+   position: fixed;
+   inset: 0;
+   background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.08) 2px,
+      rgba(0, 0, 0, 0.08) 4px
+   );
+   pointer-events: none;
+   z-index: 9998;
+   box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.6);
+}
