@@ -69,6 +69,16 @@ the droplet's staging, then live. Never test in production.
   access log — `/` (index), `styles.css`, `support.js`. The one `404` was
   `favicon.ico`, which is expected (no favicon yet). Reading those log lines
   (IP, request, status, bytes, referrer, user agent) is a small skill on its own.
+- Detour worth mentioning: `curl localhost:8090` kept returning nothing, which
+  looked like a broken config. It wasn't. `localhost` resolves to IPv6 `::1`
+  first, and rootless podman published the port on IPv4 only, so the connection
+  never landed. `127.0.0.1` (explicit IPv4) works. Lesson: check connectivity
+  before blaming the app.
+
+> **Screenshot for the post:** `docs/blog/images/nginx-local-test.png` — the
+> `nginx.conf` (gzip layer) in the editor beside the live access log while
+> clicking through the site at `127.0.0.1:8090`, every page a `200`. Move to
+> `site/images/` when this post gets published to `blog.html`.
 
 ## TLS the right way behind Cloudflare  [todo]
 
