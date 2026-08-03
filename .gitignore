@@ -4,3 +4,5 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
+\# private planning -never publish
+ROADMAP.md
