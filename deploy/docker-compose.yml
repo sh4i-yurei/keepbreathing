@@ -1,0 +1,10 @@
+services:
+  web:
+    image: nginx:alpine
+    container_name: keepbreath
+    restart: unless-stopped
+    ports:
+      - "8090:80"
+    volumes:
+      - ../site:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
