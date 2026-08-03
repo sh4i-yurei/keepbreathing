@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
    keepbreath.ing
-   Author:  Mark Thompson
-   Date:   2026-06-05
-
+   About Page (whois)
+   Author:   Mark Thompson
+   Date:     2026-06-05
    Filename: about.html
 -->
 <html lang="en">
@@ -19,22 +19,21 @@
 
 <body>
 
-    <!-- ============================================================
-         BACKGROUND CANVAS LAYERS
-         Phantom code + scan line — fixed, behind everything
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- BACKGROUND CANVAS LAYERS -->
+    <!-- ==================================================================== -->
     <canvas id="phantom" class="phantom"></canvas>
     <div class="scanline" data-scan></div>
     <div class="crt-overlay"></div>
+    <!-- Fixed full-viewport layers behind all content; support.js animates the phantom code and scan line. -->
 
 
-    <!-- ============================================================
-         SIDEBAR
-         Brand, status dot, navigation, social links
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ==================================================================== -->
     <aside>
 
-        <!-- Brand -->
+        <!-- ------------------------------ Brand ------------------------------- -->
         <div class="brand">
             <div class="brand-top">
                 <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
@@ -42,8 +41,9 @@
             </div>
             <div class="subtitle">traceroute.dev</div>
         </div>
+        <!-- Site wordmark linking home, with the live status dot and host tagline. -->
 
-        <!-- Navigation -->
+        <!-- ---------------------------- Navigation ---------------------------- -->
         <div class="nav-label"># navigation</div>
         <nav>
             <ul>
@@ -56,8 +56,9 @@
                 <li><a href="journey.html">uptime</a></li>
             </ul>
         </nav>
+        <!-- Same nav on every page; the current page carries class="active" (here, whois). -->
 
-        <!-- Kana decorative overlay -->
+        <!-- --------------------------- Kana Overlay --------------------------- -->
         <div class="kana-overlay">
             <span class="kana">起</span>
             <span class="kana">誰</span>
@@ -67,8 +68,9 @@
             <span class="kana">連</span>
             <span class="kana">跡</span>
         </div>
+        <!-- Decorative Japanese characters positioned by .kana-overlay; purely visual. -->
 
-        <!-- Social Links -->
+        <!-- --------------------------- Social Links --------------------------- -->
         <div class="sidebar-bottom">
             <div class="sidebar-status">
                 <span class="status-label">status</span>
@@ -83,20 +85,17 @@
                 <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
             </div>
         </div>
+        <!-- Status readouts plus outbound GitHub and LinkedIn links; identical block on every page. -->
 
     </aside>
 
 
-    <!-- ============================================================
-         MAIN COLUMN
-         Top bar + page content
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- MAIN COLUMN -->
+    <!-- ==================================================================== -->
     <main>
 
-        <!-- --------------------------------------------------------
-             TOP BAR
-             Traffic lights, page prompt, clock
-        -------------------------------------------------------- -->
+        <!-- ----------------------------- Top Bar ------------------------------ -->
         <header>
             <div class="traffic-lights">
                 <span class="tl-red"></span>
@@ -106,37 +105,27 @@
             <div class="prompt">mark@traceroute.dev:~/<span class="path">whois</span>$</div>
             <div class="clock" id="clock"></div>
         </header>
+        <!-- Terminal-style title bar: traffic-light dots, the shell prompt showing the page path, and a live clock (#clock). -->
 
-        <!-- --------------------------------------------------------
-             PAGE CONTENT
-        -------------------------------------------------------- -->
-
-        <!-- --------------------------------------------------------
-             HERO HEADING
-             whois mark.thompson — glitch / RGB-split effect
-        -------------------------------------------------------- -->
+        <!-- --------------------------- Page Heading --------------------------- -->
         <div class="page-hero">
             <h1 class="page-title">About <span class="accent">Mark</span><span class="caret">▋</span></h1>
         </div>
         <p class="projects-subtitle">Who I am, what I do, and where I'm headed.</p>
+        <!-- Two-tone page title with a blinking caret, followed by the page subtitle. -->
 
-        <!-- --------------------------------------------------------
-             QUOTE
-        -------------------------------------------------------- -->
+        <!-- ------------------------------ Quote ------------------------------- -->
         <blockquote class="about-quote">
             <p>"It always seems impossible until it's done."</p>
             <cite>— Nelson Mandela</cite>
         </blockquote>
+        <!-- Pull-quote styled with a left accent border. -->
 
-        <!-- --------------------------------------------------------
-             HEADSHOT — floats right; bio text wraps around it
-        -------------------------------------------------------- -->
+        <!-- ----------------------------- Headshot ----------------------------- -->
         <img class="headshot" src="images/headshot.jpg" alt="Mark Thompson" width="640" height="800">
+        <!-- Portrait floated right; the bio text below wraps around it. -->
 
-        <!-- --------------------------------------------------------
-             FOCUS LADDER
-             Degrees and certs — sits below the headshot (clear: right)
-        -------------------------------------------------------- -->
+        <!-- --------------------------- Focus Ladder --------------------------- -->
         <div class="focus-ladder">
             <div class="milestone active">
                 <div class="milestone-dot"></div>
@@ -173,11 +162,9 @@
                 </div>
             </div>
         </div>
+        <!-- Vertical education and cert roadmap; each .milestone dot is colored by state (active, planned, future). -->
 
-        <!-- --------------------------------------------------------
-             INTRO
-             Background and personal story
-        -------------------------------------------------------- -->
+        <!-- ------------------------------ Intro ------------------------------- -->
         <div class="about-intro">
 
             <p>I'm Mark Thompson, 46, autistic, a father of four and stepfather of two. The house
@@ -225,11 +212,9 @@
                been more sure of the direction.</p>
 
         </div>
+        <!-- Five-paragraph personal story, in Mark's own voice. -->
 
-        <!-- --------------------------------------------------------
-             SKILLS GRID
-             Four cards: networking, systems, security, code
-        -------------------------------------------------------- -->
+        <!-- --------------------------- Skills Grid ---------------------------- -->
         <div class="skills-grid">
             <div class="skill-card">
                 <h3>Networking</h3>
@@ -280,6 +265,7 @@
                 </div>
             </div>
         </div>
+        <!-- Four .skill-card panels (networking, systems, security, code and web); chips colored by category. -->
 
     </main>
 

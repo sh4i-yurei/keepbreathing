@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
    keepbreath.ing
-   Author:  Mark Thompson
-   Date:   2026-06-05
-
+   Resume Page (cat resume.txt)
+   Author:   Mark Thompson
+   Date:     2026-06-05
    Filename: resume.html
 -->
 <html lang="en">
@@ -19,22 +19,21 @@
 
 <body>
 
-    <!-- ============================================================
-         BACKGROUND CANVAS LAYERS
-         Phantom code + scan line — fixed, behind everything
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- BACKGROUND CANVAS LAYERS -->
+    <!-- ==================================================================== -->
     <canvas id="phantom" class="phantom"></canvas>
     <div class="scanline" data-scan></div>
     <div class="crt-overlay"></div>
+    <!-- Fixed full-viewport layers behind all content; support.js animates the phantom code and scan line. -->
 
 
-    <!-- ============================================================
-         SIDEBAR
-         Brand, status dot, navigation, social links
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ==================================================================== -->
     <aside>
 
-        <!-- Brand -->
+        <!-- ------------------------------ Brand ------------------------------- -->
         <div class="brand">
             <div class="brand-top">
                 <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
@@ -42,8 +41,9 @@
             </div>
             <div class="subtitle">traceroute.dev</div>
         </div>
+        <!-- Site wordmark linking home, with the live status dot and host tagline. -->
 
-        <!-- Navigation -->
+        <!-- ---------------------------- Navigation ---------------------------- -->
         <div class="nav-label"># navigation</div>
         <nav>
             <ul>
@@ -56,8 +56,9 @@
                 <li><a href="journey.html">uptime</a></li>
             </ul>
         </nav>
+        <!-- Same nav on every page; the current page carries class="active" (here, resume). -->
 
-        <!-- Kana decorative overlay -->
+        <!-- --------------------------- Kana Overlay --------------------------- -->
         <div class="kana-overlay">
             <span class="kana">起</span>
             <span class="kana">誰</span>
@@ -67,8 +68,9 @@
             <span class="kana">連</span>
             <span class="kana">跡</span>
         </div>
+        <!-- Decorative Japanese characters positioned by .kana-overlay; purely visual. -->
 
-        <!-- Social Links -->
+        <!-- --------------------------- Social Links --------------------------- -->
         <div class="sidebar-bottom">
             <div class="sidebar-status">
                 <span class="status-label">status</span>
@@ -83,20 +85,17 @@
                 <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
             </div>
         </div>
+        <!-- Status readouts plus outbound GitHub and LinkedIn links; identical block on every page. -->
 
     </aside>
 
 
-    <!-- ============================================================
-         MAIN COLUMN
-         Top bar + page content
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- MAIN COLUMN -->
+    <!-- ==================================================================== -->
     <main>
 
-        <!-- --------------------------------------------------------
-             TOP BAR
-             Traffic lights, page prompt, clock
-        -------------------------------------------------------- -->
+        <!-- ----------------------------- Top Bar ------------------------------ -->
         <header>
             <div class="traffic-lights">
                 <span class="tl-red"></span>
@@ -106,10 +105,265 @@
             <div class="prompt">mark@traceroute.dev:~/<span class="path">cat resume.txt</span>$</div>
             <div class="clock" id="clock"></div>
         </header>
+        <!-- Terminal-style title bar: traffic-light dots, the shell prompt showing the page path, and a live clock (#clock). -->
 
-        <!-- --------------------------------------------------------
-             PAGE CONTENT
-        -------------------------------------------------------- -->
+        <!-- --------------------------- Page Heading --------------------------- -->
+        <div class="page-hero">
+            <h1 class="page-title">Mark <span class="accent">Thompson</span><span class="caret">▋</span></h1>
+        </div>
+        <p class="projects-subtitle">IT support, network administration, and cybersecurity. Finishing dual associate degrees at Hinds and looking for an entry-level role.</p>
+        <!-- Two-tone page title with a blinking caret, followed by the role subtitle. -->
+
+        <!-- ----------------------------- Meta Bar ----------------------------- -->
+        <div class="resume-meta">
+            <span>Florence, MS</span>
+            <span class="sep">/</span>
+            <a href="contact.html">sendmail</a>
+            <span class="sep">/</span>
+            <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
+            <span class="sep">/</span>
+            <a href="https://github.com/sh4i-yurei" target="_blank">github</a>
+            <span class="sep">/</span>
+            <span>keepbreath.ing</span>
+        </div>
+        <!-- Location and links only; no phone or raw email, so mail routes through the contact form. -->
+
+        <!-- ----------------------------- Summary ------------------------------ -->
+        <section class="resume-summary">
+            <p>IT professional and networking student with hands-on experience in technical support, system documentation, digital asset management, and field operations. Currently pursuing dual Associate degrees in Computer Networking and Cybersecurity at Hinds Community College. Holds CompTIA A+ and Google IT Support Professional certifications. Proven ability to implement process improvements, maintain digital systems, and deliver reliable technical support in fast-paced environments. Seeking an entry-level role in IT support, network administration, or cybersecurity.</p>
+        </section>
+        <!-- Single professional-summary paragraph. -->
+
+        <!-- ------------------------- Technical Skills ------------------------- -->
+        <div class="section-label"># technical skills</div>
+        <div class="skills-grid">
+            <div class="skill-card">
+                <h3>Networking &amp; Security</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-net">Wireshark</span>
+                    <span class="chip chip-net">Nmap</span>
+                    <span class="chip chip-net">Packet Tracer</span>
+                    <span class="chip chip-net">GNS3</span>
+                    <span class="chip chip-sec">Kali Linux</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Systems Administration</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-sys">Active Directory</span>
+                    <span class="chip chip-sys">Group Policy</span>
+                    <span class="chip chip-net">DNS</span>
+                    <span class="chip chip-net">DHCP</span>
+                    <span class="chip chip-sys">Windows Server</span>
+                    <span class="chip chip-tool">Hyper-V</span>
+                    <span class="chip chip-tool">VirtualBox</span>
+                    <span class="chip chip-tool">VMware</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>OS &amp; Scripting</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-sys">Windows</span>
+                    <span class="chip chip-tool">Linux</span>
+                    <span class="chip chip-lang">PowerShell</span>
+                    <span class="chip chip-lang">Bash</span>
+                    <span class="chip chip-lang">CMD</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Software &amp; Tools</h3>
+                <div class="skill-chips">
+                    <span class="chip chip-tool">Photoshop</span>
+                    <span class="chip chip-tool">Lightroom</span>
+                    <span class="chip chip-tool">Microsoft Office</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Core Competencies</h3>
+                <div class="skill-chips">
+                    <span class="chip">Technical support</span>
+                    <span class="chip">System documentation</span>
+                    <span class="chip">Workflow optimization</span>
+                    <span class="chip">Quality assurance</span>
+                    <span class="chip">Compliance</span>
+                </div>
+            </div>
+            <div class="skill-card">
+                <h3>Service &amp; Leadership</h3>
+                <div class="skill-chips">
+                    <span class="chip">De-escalation</span>
+                    <span class="chip">Client relationships</span>
+                    <span class="chip">Team coaching</span>
+                    <span class="chip">Composure under pressure</span>
+                    <span class="chip">Follow-through</span>
+                </div>
+            </div>
+        </div>
+        <!-- Six .skill-card panels; each chip is colored by category via the shared chip-* classes. -->
+
+        <!-- ---------------------------- Experience ---------------------------- -->
+        <div class="section-label"># experience</div>
+        <div class="resume-body">
+
+            <div class="resume-job">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Independent Delivery Driver</h3>
+                        <div class="resume-org">Spark Driver (Walmart) &middot; Jackson, MS</div>
+                    </div>
+                    <span class="resume-dates">Oct 2022 - Present</span>
+                </div>
+                <ul class="resume-bullets">
+                    <li>Operate proprietary delivery management software and GPS technology to execute accurate, on-time deliveries across assigned service areas.</li>
+                    <li>Apply real-time route optimization to reduce transit times and improve daily delivery throughput.</li>
+                    <li>Maintain 100% compliance with digital documentation and delivery verification standards over 4+ years of continuous service.</li>
+                    <li>Resolve delivery exceptions and communicate proactively with customers and dispatch to minimize service disruptions.</li>
+                </ul>
+            </div>
+
+            <div class="resume-job">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Technical Operations Field Agent</h3>
+                        <div class="resume-org">NMFS &middot; Jackson, MS</div>
+                    </div>
+                    <span class="resume-dates">Jul 2020 - Oct 2022</span>
+                </div>
+                <ul class="resume-bullets">
+                    <li>Deployed digital documentation systems for field service inspections, reducing data entry errors and improving record accessibility.</li>
+                    <li>Produced comprehensive technical reports and maintained compliance-ready digital records for regulatory review.</li>
+                    <li>Collected and validated inspection data for financial institutions, ensuring integrity across all submitted results.</li>
+                    <li>Designed quality control protocols for inspection documentation, increasing consistency and audit-readiness of reports.</li>
+                </ul>
+            </div>
+
+            <div class="resume-job">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Kitchen Manager</h3>
+                        <div class="resume-org">Billy's Italian Restaurant &middot; Vicksburg, MS</div>
+                    </div>
+                    <span class="resume-dates">Jan 2019 - Jun 2020</span>
+                </div>
+                <ul class="resume-bullets">
+                    <li>Directed daily kitchen operations including food prep, line coordination, and service execution for a full-service restaurant.</li>
+                    <li>Coached and developed kitchen staff, managing scheduling and training new hires on food handling standards and procedures.</li>
+                    <li>Resolved interpersonal conflicts between staff with composure under pressure, keeping the team functional during high-volume service.</li>
+                    <li>Controlled food inventory and ordering to reduce waste and hold cost targets, while enforcing health and sanitation compliance across all stations.</li>
+                </ul>
+            </div>
+
+            <div class="resume-job">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Technical Support Lead</h3>
+                        <div class="resume-org">Waitr Inc. &middot; Pensacola, FL</div>
+                    </div>
+                    <span class="resume-dates">Jan 2018 - Oct 2018</span>
+                </div>
+                <ul class="resume-bullets">
+                    <li>Delivered technical support and troubleshooting for a multi-market delivery platform, contributing to 99% system uptime.</li>
+                    <li>Applied active listening and de-escalation to resolve frustrated user complaints and restore trust.</li>
+                    <li>Facilitated technical onboarding sessions for new users, accelerating ramp time and reducing repeat support requests.</li>
+                    <li>Identified and implemented process improvements in customer service workflows, raising satisfaction across the support queue.</li>
+                </ul>
+            </div>
+
+            <div class="resume-job">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Systems Documentation Specialist</h3>
+                        <div class="resume-org">Gulf Coast Field Services &middot; Pensacola, FL</div>
+                    </div>
+                    <span class="resume-dates">May 2017 - Jun 2018</span>
+                </div>
+                <ul class="resume-bullets">
+                    <li>Authored detailed technical documentation for property inspection procedures, improving field team consistency and compliance.</li>
+                    <li>Built and maintained digital reporting systems that improved data visibility and stakeholder access to inspection results.</li>
+                    <li>Collaborated with cross-functional stakeholders to verify data accuracy, reducing reporting discrepancies and rework.</li>
+                    <li>Enforced quality control standards across documentation workflows, establishing repeatable processes for a distributed team.</li>
+                </ul>
+            </div>
+
+            <div class="resume-job">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Digital Asset Manager / Technical Lead</h3>
+                        <div class="resume-org">Mark Thompson Photography &middot; Robertsdale, AL</div>
+                    </div>
+                    <span class="resume-dates">Jan 2014 - Jun 2017</span>
+                </div>
+                <ul class="resume-bullets">
+                    <li>Directed end-to-end digital workflow for image capture, processing, and archival, supporting consistent on-time project delivery.</li>
+                    <li>Built lasting client relationships through proactive communication and reliable follow-through, earning repeat bookings and referrals.</li>
+                    <li>Used advanced Adobe Creative Suite tools (Photoshop, Lightroom) for professional-grade image editing and color grading.</li>
+                    <li>Developed a client CRM and digital booking system, streamlining scheduling and communication for recurring clients.</li>
+                </ul>
+            </div>
+
+        </div>
+        <!-- Six .resume-job cards, newest first; each is a .resume-job-top (role, org, dates) over a .resume-bullets list. -->
+
+        <!-- ---------------------------- Education ----------------------------- -->
+        <div class="section-label"># education</div>
+        <div class="resume-body">
+
+            <div class="resume-edu-item">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">A.A.S. Computer Networking Technology &nbsp;&middot;&nbsp; A.A.S. Cybersecurity</h3>
+                        <div class="resume-org">Hinds Community College &middot; Pearl, MS (Rankin Campus)</div>
+                    </div>
+                    <span class="resume-dates">2024 - Present</span>
+                </div>
+                <p class="resume-note">In progress. Expected graduation December 2026. Dual associate degrees, 3.5 GPA, Phi Theta Kappa.</p>
+            </div>
+
+            <div class="resume-edu-item">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Networking Technology &amp; Administration</h3>
+                        <div class="resume-org">Faulkner State College &middot; Bay Minette, AL</div>
+                    </div>
+                    <span class="resume-dates">2013 - 2014</span>
+                </div>
+            </div>
+
+            <div class="resume-edu-item">
+                <div class="resume-job-top">
+                    <div>
+                        <h3 class="resume-role">Commercial Art, Focus in Digital Media</h3>
+                        <div class="resume-org">Faulkner State College &middot; Bay Minette, AL</div>
+                    </div>
+                    <span class="resume-dates">2014 - 2015</span>
+                </div>
+            </div>
+
+        </div>
+        <!-- Three .resume-edu-item panels; the Hinds entry adds a .resume-note for status and honors. -->
+
+        <!-- -------------------------- Certifications -------------------------- -->
+        <div class="section-label"># certifications</div>
+        <div class="skills-grid">
+            <div class="skill-card">
+                <h3>Earned</h3>
+                <ul class="resume-cert-list">
+                    <li>CompTIA A+</li>
+                    <li>Google IT Support Professional Certificate (February 2025)</li>
+                    <li>HIPAA Certification (2021 - 2022)</li>
+                    <li>Career Readiness Certificate, Silver</li>
+                </ul>
+            </div>
+            <div class="skill-card">
+                <h3>In Progress</h3>
+                <ul class="resume-cert-list">
+                    <li>CompTIA Security+ (next)</li>
+                    <li>Cisco CCNA</li>
+                    <li>CompTIA Linux+</li>
+                </ul>
+            </div>
+        </div>
+        <!-- Two .skill-card panels splitting earned certifications from in-progress ones. -->
 
     </main>
 

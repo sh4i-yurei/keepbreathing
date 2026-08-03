@@ -246,7 +246,7 @@ function crtGlitch() {
     setTimeout(function() {
         body.classList.remove("glitching");
         /* Occasionally double-glitch */
-        if (Math.random() > 0.6) {
+        if (Math.random() > 0.85) {
             setTimeout(function() {
                 body.classList.add("glitching");
                 setTimeout(function() {
@@ -261,7 +261,7 @@ function crtGlitch() {
 }
 
 function scheduleNextGlitch() {
-    var nextDelay = 5000 + Math.random() * 3000;
+    var nextDelay = 14000 + Math.random() * 10000;
     setTimeout(function() {
         crtGlitch();
     }, nextDelay);

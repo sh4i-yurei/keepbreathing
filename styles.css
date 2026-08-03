@@ -2,16 +2,17 @@
 
 /*
    keepbreath.ing
-   Author:  Mark Thompson
-   Date:   2026-06-05
-
+   Site Stylesheet
+   Author:   Mark Thompson
+   Date:     2026-06-05
    Filename: styles.css
 */
 
 
-/* =====================
-   Base & Reset
-   ===================== */
+/* ==================================================================== */
+/* BASE & RESET */
+/* ==================================================================== */
+/* Global box-sizing reset and the :root custom properties (color palette) used site-wide. */
 * {
     margin: 0;
     padding: 0;
@@ -19,27 +20,28 @@
 }
 
 :root {
-    --bg:          #08090c;
-    --panel:       #0b0d11;
-    --panel-2:     #0a0c10;
-    --border:      #1a1e27;
-    --border-2:    #2a303c;
-    --text:        #cdd6f4;
-    --text-bright: #e6ebf7;
-    --text-dim:    #717a90;
-    --text-faint:  #4b5365;
-    --cyan:        #00ffd1;
-    --magenta:     #ff2e88;
-    --amber:       #ffcc66;
-    --green:       #39ff14;
-    --purple:      #b06bff;
-    --panel-hover: #12151b;
+    --bg:          #08090c;   /* page background, near black */
+    --panel:       #0b0d11;   /* raised panels, sidebar, header */
+    --panel-2:     #0a0c10;   /* slightly deeper panel variant */
+    --border:      #1a1e27;   /* subtle borders and dividers */
+    --border-2:    #2a303c;   /* stronger border for emphasis */
+    --text:        #cdd6f4;   /* primary body text */
+    --text-bright: #e6ebf7;   /* brightest headings */
+    --text-dim:    #717a90;   /* secondary, muted text */
+    --text-faint:  #4b5365;   /* faint labels and captions */
+    --cyan:        #00ffd1;   /* primary accent: links, highlights */
+    --magenta:     #ff2e88;   /* secondary accent: caret, alerts */
+    --amber:       #ffcc66;   /* warm accent: dates, warnings */
+    --green:       #39ff14;   /* success / online accent */
+    --purple:      #b06bff;   /* extra accent */
+    --panel-hover: #12151b;   /* panel hover background */
 }
 
 
-/* =====================
-   Typography
-   ===================== */
+/* ==================================================================== */
+/* TYPOGRAPHY */
+/* ==================================================================== */
+/* Base font family, size, and text color set on html and body. */
 
 html, body {
     background-color: var(--bg);
@@ -50,9 +52,10 @@ html, body {
 }
 
 
-/* =====================
-   Layout & Structure
-   ===================== */
+/* ==================================================================== */
+/* LAYOUT & STRUCTURE */
+/* ==================================================================== */
+/* Flexbox page shell: the fixed sidebar (aside) and the offset main column. */
 body {
     display: flex;
     min-height: 100vh;
@@ -82,9 +85,10 @@ main img {
    z-index: 50;
 }
 
-/* =====================
-   Header & Navigation
-   ===================== */
+/* ==================================================================== */
+/* HEADER & NAVIGATION */
+/* ==================================================================== */
+/* Sticky top bar with the traffic-light dots, shell prompt, and live clock. */
 header {
    position: sticky;
    top: 0;
@@ -294,9 +298,10 @@ nav a.active {
    animation: pulse 4s infinite;
 }
 
-/* =====================
-   Hero / Home Section
-   ===================== */
+/* ==================================================================== */
+/* HERO / HOME SECTION */
+/* ==================================================================== */
+/* Landing page: boot terminal, matrix rain, hero heading, CTAs, recent posts, intro, and stat cards. */
 #matrix {
    position: fixed;
    top: 48px; /* below topbar */
@@ -549,9 +554,10 @@ body.glitching {
    color: var(--green);
 }
 
-/* =====================
-   About Section
-   ===================== */
+/* ==================================================================== */
+/* ABOUT SECTION */
+/* ==================================================================== */
+/* whois page: heading, quote, headshot, focus-ladder roadmap, bio, and skills grid. */
 /* Shared page heading — same style on every content page.
    The key word is wrapped in .accent for the two-tone cyan look. */
 .page-hero {
@@ -705,9 +711,10 @@ body.glitching {
 .chip-sys  { color: var(--amber);   border-color: var(--amber); }
 
 
-/* =====================
-   Projects Section
-   ===================== */
+/* ==================================================================== */
+/* PROJECTS SECTION */
+/* ==================================================================== */
+/* make page: subtitle, section labels, and the project-card grid with status chips. */
 
 
 .projects-subtitle {
@@ -803,9 +810,145 @@ body.glitching {
 }
 
 
-/* =====================
-   Blog / Posts Section
-   ===================== */
+/* ==================================================================== */
+/* RESUME SECTION */
+/* ==================================================================== */
+/* cat resume.txt page: meta bar, summary, job and education panels, and cert lists. */
+
+.resume-meta {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: center;
+   gap: 10px;
+   padding: 0 44px 22px;
+   font-size: 12px;
+   color: var(--text-dim);
+}
+
+.resume-meta a {
+   color: var(--cyan);
+   text-decoration: none;
+}
+
+.resume-meta a:hover {
+   color: var(--text-bright);
+}
+
+.resume-meta .sep {
+   color: var(--text-faint);
+}
+
+.resume-summary {
+   padding: 0 44px 8px;
+   max-width: 880px;
+}
+
+.resume-summary p {
+   color: var(--text);
+   line-height: 1.7;
+   font-size: 14px;
+}
+
+.resume-body {
+   padding: 0 44px 8px;
+   max-width: 920px;
+}
+
+.resume-job,
+.resume-edu-item {
+   background-color: var(--panel);
+   border: 1px solid var(--border);
+   border-left: 2px solid var(--border-2);
+   padding: 18px 20px;
+   margin-bottom: 14px;
+   transition: border-left-color 0.2s;
+}
+
+.resume-job:hover,
+.resume-edu-item:hover {
+   border-left-color: var(--cyan);
+}
+
+.resume-job-top {
+   display: flex;
+   flex-wrap: wrap;
+   align-items: baseline;
+   justify-content: space-between;
+   gap: 8px 16px;
+   margin-bottom: 12px;
+}
+
+.resume-edu-item .resume-job-top {
+   margin-bottom: 0;
+}
+
+.resume-role {
+   font-size: 15px;
+   color: var(--text-bright);
+}
+
+.resume-org {
+   font-size: 12px;
+   color: var(--text-dim);
+   margin-top: 4px;
+}
+
+.resume-dates {
+   font-size: 11px;
+   color: var(--amber);
+   white-space: nowrap;
+   flex-shrink: 0;
+   letter-spacing: 0.04em;
+}
+
+.resume-bullets,
+.resume-cert-list {
+   list-style: none;
+   margin: 0;
+   padding: 0;
+}
+
+.resume-bullets li,
+.resume-cert-list li {
+   position: relative;
+   padding-left: 18px;
+   margin-bottom: 8px;
+   font-size: 13px;
+   line-height: 1.6;
+   color: var(--text-dim);
+}
+
+.resume-bullets li:last-child,
+.resume-cert-list li:last-child {
+   margin-bottom: 0;
+}
+
+.resume-bullets li::before {
+   content: "\25B9";
+   position: absolute;
+   left: 0;
+   color: var(--cyan);
+}
+
+.resume-cert-list li::before {
+   content: "\25AA";
+   position: absolute;
+   left: 0;
+   color: var(--green);
+}
+
+.resume-note {
+   font-size: 13px;
+   line-height: 1.6;
+   color: var(--text-dim);
+   margin-top: 12px;
+}
+
+
+/* ==================================================================== */
+/* BLOG / POSTS SECTION */
+/* ==================================================================== */
+/* stdout page: the tag-filter buttons and the expandable post-list accordion. */
 
 .tag-dev { color: var(--cyan); }
 
@@ -943,15 +1086,84 @@ body.glitching {
    margin-top: 12px;
 }
 
+/* Section headings inside a post body, marked with a cyan "## " like a shell/markdown heading */
+.post-full h3 {
+   margin: 22px 0 8px;
+   font-size: 14px;
+   font-weight: 700;
+   color: var(--text-bright);
+   letter-spacing: 0.02em;
+}
 
-/* =====================
-   Resume Section
-   ===================== */
+.post-full h3::before {
+   content: "## ";
+   color: var(--cyan);
+}
+
+/* Fenced code blocks: a bordered terminal panel with a cyan left rule; scrolls sideways if a line is long */
+.post-full pre {
+   margin: 12px 0;
+   padding: 14px 16px;
+   background: var(--panel-2);
+   border: 1px solid var(--border);
+   border-left: 2px solid var(--cyan);
+   border-radius: 4px;
+   overflow-x: auto;
+   font-size: 12.5px;
+   line-height: 1.6;
+}
+
+.post-full pre code {
+   color: var(--text);
+   background: none;
+   padding: 0;
+   font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+}
+
+/* Inline code: small amber chip against a faint tint */
+.post-full code {
+   font-family: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+   font-size: 0.9em;
+   color: var(--amber);
+   background: rgba(255, 204, 102, 0.08);
+   padding: 1px 5px;
+   border-radius: 3px;
+}
+
+/* Numbered lists inside a post body */
+.post-full ol {
+   margin: 10px 0 0 20px;
+}
+
+.post-full li {
+   margin-top: 6px;
+}
+
+/* Screenshots inside a post: bordered image with a small caption below */
+.post-full figure {
+   margin: 16px 0;
+}
+
+.post-full figure img {
+   display: block;
+   width: 100%;
+   max-width: 560px;
+   height: auto;
+   border: 1px solid var(--border-2);
+   border-radius: 4px;
+}
+
+.post-full figcaption {
+   margin-top: 6px;
+   font-size: 12px;
+   color: var(--text-faint);
+}
 
 
-/* =====================
-   Contact Section
-   ===================== */
+/* ==================================================================== */
+/* CONTACT SECTION */
+/* ==================================================================== */
+/* sendmail page: the two-column form-and-graphic layout and confirmation banner. */
 .contact-layout {
    display: flex;
    align-items: stretch;
@@ -1037,19 +1249,106 @@ body.glitching {
 }
 
 
-/* =====================
-   Journey Section
-   ===================== */
+/* ==================================================================== */
+/* JOURNEY SECTION */
+/* ==================================================================== */
+/* uptime page: the vertical timeline with a gradient spine and era-colored node dots. */
+
+.timeline {
+   position: relative;
+   margin: 6px 44px 48px;
+   max-width: 740px;
+}
+
+/* continuous gradient spine down the centre of the rails */
+.timeline::before {
+   content: "";
+   position: absolute;
+   left: 7px;
+   top: 10px;
+   bottom: 10px;
+   width: 2px;
+   transform: translateX(-50%);
+   background: linear-gradient(180deg, var(--cyan) 0%, var(--magenta) 55%, var(--purple) 100%);
+   opacity: 0.7;
+}
+
+.tl-item {
+   display: flex;
+   gap: 20px;
+   padding-bottom: 24px;
+}
+
+.tl-item:last-child {
+   padding-bottom: 0;
+}
+
+.tl-rail {
+   flex: 0 0 14px;
+   display: flex;
+   justify-content: center;
+}
+
+.tl-dot {
+   position: relative;
+   z-index: 1;
+   width: 12px;
+   height: 12px;
+   margin-top: 5px;
+   border-radius: 50%;
+   border: 2px solid var(--bg);
+   box-shadow: 0 0 8px 1px currentColor;
+   background: var(--cyan);
+   color: var(--cyan);
+}
+
+.era-early  .tl-dot { background: var(--cyan);   color: var(--cyan); }
+.era-work   .tl-dot { background: var(--amber);  color: var(--amber); }
+.era-return .tl-dot { background: var(--green);  color: var(--green); }
+.era-future .tl-dot { background: var(--purple); color: var(--purple); }
+
+.tl-card {
+   flex: 1;
+   max-width: 640px;
+   background: var(--panel);
+   border: 1px solid var(--border);
+   border-radius: 6px;
+   padding: 13px 16px;
+}
+
+.tl-year {
+   font-size: 12px;
+   color: var(--text-faint);
+   letter-spacing: 0.05em;
+}
+
+.tl-title {
+   font-size: 15px;
+   color: var(--text-bright);
+   margin: 3px 0 7px;
+}
+
+.tl-body {
+   font-size: 13px;
+   line-height: 1.65;
+   color: var(--text-dim);
+}
+
+.tl-tags {
+   margin-top: 10px;
+   font-size: 11px;
+   color: var(--text-faint);
+}
+
+.tl-tags span {
+   margin-right: 10px;
+}
 
 
-/* =====================
-   Footer
-   ===================== */
-
-
-/* =====================
-   Utility Classes
-   ===================== */
+/* ==================================================================== */
+/* UTILITY CLASSES */
+/* ==================================================================== */
+/* Fixed background effects (phantom-code canvas, scan line, CRT overlay) and their keyframes. */
 
 /* Phantom code canvas — CRT power-on animation */
 @keyframes crt-power-on {

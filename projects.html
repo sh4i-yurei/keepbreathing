@@ -1,11 +1,9 @@
-
-
 <!DOCTYPE html>
 <!--
    keepbreath.ing
-   Author:  Mark Thompson
-   Date:   2026-06-05
-
+   Projects Page (make)
+   Author:   Mark Thompson
+   Date:     2026-06-05
    Filename: projects.html
 -->
 <html lang="en">
@@ -21,22 +19,21 @@
 
 <body>
 
-    <!-- ============================================================
-         BACKGROUND CANVAS LAYERS
-         Phantom code + scan line — fixed, behind everything
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- BACKGROUND CANVAS LAYERS -->
+    <!-- ==================================================================== -->
     <canvas id="phantom" class="phantom"></canvas>
     <div class="scanline" data-scan></div>
     <div class="crt-overlay"></div>
+    <!-- Fixed full-viewport layers behind all content; support.js animates the phantom code and scan line. -->
 
 
-    <!-- ============================================================
-         SIDEBAR
-         Brand, status dot, navigation, social links
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ==================================================================== -->
     <aside>
 
-        <!-- Brand -->
+        <!-- ------------------------------ Brand ------------------------------- -->
         <div class="brand">
             <div class="brand-top">
                 <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
@@ -44,8 +41,9 @@
             </div>
             <div class="subtitle">traceroute.dev</div>
         </div>
+        <!-- Site wordmark linking home, with the live status dot and host tagline. -->
 
-        <!-- Navigation -->
+        <!-- ---------------------------- Navigation ---------------------------- -->
         <div class="nav-label"># navigation</div>
         <nav>
             <ul>
@@ -58,8 +56,9 @@
                 <li><a href="journey.html">uptime</a></li>
             </ul>
         </nav>
+        <!-- Same nav on every page; the current page carries class="active" (here, make). -->
 
-        <!-- Kana decorative overlay -->
+        <!-- --------------------------- Kana Overlay --------------------------- -->
         <div class="kana-overlay">
             <span class="kana">起</span>
             <span class="kana">誰</span>
@@ -69,8 +68,9 @@
             <span class="kana">連</span>
             <span class="kana">跡</span>
         </div>
+        <!-- Decorative Japanese characters positioned by .kana-overlay; purely visual. -->
 
-        <!-- Social Links -->
+        <!-- --------------------------- Social Links --------------------------- -->
         <div class="sidebar-bottom">
             <div class="sidebar-status">
                 <span class="status-label">status</span>
@@ -85,20 +85,17 @@
                 <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
             </div>
         </div>
+        <!-- Status readouts plus outbound GitHub and LinkedIn links; identical block on every page. -->
 
     </aside>
 
 
-    <!-- ============================================================
-         MAIN COLUMN
-         Top bar + page content
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- MAIN COLUMN -->
+    <!-- ==================================================================== -->
     <main>
 
-        <!-- --------------------------------------------------------
-             TOP BAR
-             Traffic lights, page prompt, clock
-        -------------------------------------------------------- -->
+        <!-- ----------------------------- Top Bar ------------------------------ -->
         <header>
             <div class="traffic-lights">
                 <span class="tl-red"></span>
@@ -108,23 +105,16 @@
             <div class="prompt">mark@traceroute.dev:~/<span class="path">make</span>$</div>
             <div class="clock" id="clock"></div>
         </header>
+        <!-- Terminal-style title bar: traffic-light dots, the shell prompt showing the page path, and a live clock (#clock). -->
 
-        <!-- --------------------------------------------------------
-             PAGE CONTENT
-        -------------------------------------------------------- -->
-
-        <!-- --------------------------------------------------------
-             PAGE HEADING
-        -------------------------------------------------------- -->
+        <!-- --------------------------- Page Heading --------------------------- -->
         <div class="page-hero">
             <h1 class="page-title">What I'm <span class="accent">Building</span><span class="caret">▋</span></h1>
         </div>
         <p class="projects-subtitle">Infrastructure I run and code I write for the love of it — roughly ordered from what's live today to what's still on the bench.</p>
+        <!-- Two-tone page title with a blinking caret, followed by the page subtitle. -->
 
-        <!-- --------------------------------------------------------
-             INFRASTRUCTURE
-             Home lab, threat intel, dev server
-        -------------------------------------------------------- -->
+        <!-- -------------------------- Infrastructure -------------------------- -->
         <div class="section-label"># infrastructure</div>
         <div class="projects-grid">
 
@@ -182,11 +172,9 @@
             </article>
 
         </div>
+        <!-- Three .project-card panels for lab and server projects; .project-status shows state (active, idea, planned). -->
 
-        <!-- --------------------------------------------------------
-             CODE
-             Programming projects — games, tools, low-level
-        -------------------------------------------------------- -->
+        <!-- ------------------------------- Code ------------------------------- -->
         <div class="section-label"># code</div>
         <div class="projects-grid">
 
@@ -316,6 +304,7 @@
             </article>
 
         </div>
+        <!-- Eight .project-card panels for programming projects; each links to its blog write-up. -->
 
     </main>
 

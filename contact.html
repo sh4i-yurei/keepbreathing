@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
    keepbreath.ing
-   Author:  Mark Thompson
-   Date:   2026-06-05
-
+   Contact Page (sendmail)
+   Author:   Mark Thompson
+   Date:     2026-06-05
    Filename: contact.html
 -->
 <html lang="en">
@@ -19,22 +19,21 @@
 
 <body>
 
-    <!-- ============================================================
-         BACKGROUND CANVAS LAYERS
-         Phantom code + scan line — fixed, behind everything
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- BACKGROUND CANVAS LAYERS -->
+    <!-- ==================================================================== -->
     <canvas id="phantom" class="phantom"></canvas>
     <div class="scanline" data-scan></div>
     <div class="crt-overlay"></div>
+    <!-- Fixed full-viewport layers behind all content; support.js animates the phantom code and scan line. -->
 
 
-    <!-- ============================================================
-         SIDEBAR
-         Brand, status dot, navigation, social links
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ==================================================================== -->
     <aside>
 
-        <!-- Brand -->
+        <!-- ------------------------------ Brand ------------------------------- -->
         <div class="brand">
             <div class="brand-top">
                 <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
@@ -42,8 +41,9 @@
             </div>
             <div class="subtitle">traceroute.dev</div>
         </div>
+        <!-- Site wordmark linking home, with the live status dot and host tagline. -->
 
-        <!-- Navigation -->
+        <!-- ---------------------------- Navigation ---------------------------- -->
         <div class="nav-label"># navigation</div>
         <nav>
             <ul>
@@ -56,8 +56,9 @@
                 <li><a href="journey.html">uptime</a></li>
             </ul>
         </nav>
+        <!-- Same nav on every page; the current page carries class="active" (here, sendmail). -->
 
-        <!-- Kana decorative overlay -->
+        <!-- --------------------------- Kana Overlay --------------------------- -->
         <div class="kana-overlay">
             <span class="kana">起</span>
             <span class="kana">誰</span>
@@ -67,8 +68,9 @@
             <span class="kana">連</span>
             <span class="kana">跡</span>
         </div>
+        <!-- Decorative Japanese characters positioned by .kana-overlay; purely visual. -->
 
-        <!-- Social Links -->
+        <!-- --------------------------- Social Links --------------------------- -->
         <div class="sidebar-bottom">
             <div class="sidebar-status">
                 <span class="status-label">status</span>
@@ -83,20 +85,17 @@
                 <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
             </div>
         </div>
+        <!-- Status readouts plus outbound GitHub and LinkedIn links; identical block on every page. -->
 
     </aside>
 
 
-    <!-- ============================================================
-         MAIN COLUMN
-         Top bar + page content
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- MAIN COLUMN -->
+    <!-- ==================================================================== -->
     <main>
 
-        <!-- --------------------------------------------------------
-             TOP BAR
-             Traffic lights, page prompt, clock
-        -------------------------------------------------------- -->
+        <!-- ----------------------------- Top Bar ------------------------------ -->
         <header>
             <div class="traffic-lights">
                 <span class="tl-red"></span>
@@ -106,24 +105,26 @@
             <div class="prompt">mark@traceroute.dev:~/<span class="path">sendmail</span>$</div>
             <div class="clock" id="clock"></div>
         </header>
+        <!-- Terminal-style title bar: traffic-light dots, the shell prompt showing the page path, and a live clock (#clock). -->
 
-        <!-- --------------------------------------------------------
-             PAGE CONTENT
-        -------------------------------------------------------- -->
-        <!-- two-column: heading + form on the left, graphic centered in the open space on the right -->
+        <!-- -------------------------- Contact Layout -------------------------- -->
+        <!-- Two columns: heading and form on the left, graphic centered in the open space on the right. -->
         <div class="contact-layout">
 
             <div class="contact-left">
-                <!-- page heading (matches the other pages) -->
+
+                <!-- --------------------------- Page Heading --------------------------- -->
                 <div class="page-hero">
                     <h1 class="page-title">Get in <span class="accent">Touch</span><span class="caret">▋</span></h1>
                 </div>
                 <p class="projects-subtitle">Drop me a line and I'll get back to you.</p>
+                <!-- Two-tone page title with a blinking caret, followed by the page subtitle. -->
 
-                <!-- confirmation message appears here — above the form so it's seen -->
+                <!-- --------------------------- Confirmation --------------------------- -->
                 <div id="cf-result"></div>
+                <!-- support.js writes the success or error message here, above the form so it is seen. -->
 
-                <!-- contact form -->
+                <!-- --------------------------- Contact Form --------------------------- -->
                 <form id="contact-form" class="contact-form" novalidate>
                     <label for="cf-name">name</label>
                     <input id="cf-name" type="text" placeholder="your name">
@@ -136,12 +137,15 @@
 
                     <button type="submit">send</button>
                 </form>
+                <!-- Name, email, and message fields; validated client-side in support.js (initContactForm). novalidate hands validation to our own code for the presentation. -->
+
             </div>
 
-            <!-- sendmail graphic — centered in the space to the right, top-aligned with the heading -->
+            <!-- ----------------------------- Graphic ------------------------------ -->
             <div class="contact-right">
                 <img class="contact-image" src="images/sendmail.jpg" alt="A retro terminal screen sending an email that dissolves into a stream of data" width="667" height="1000">
             </div>
+            <!-- Decorative sendmail image, centered in the right column to fill the space beside the form. -->
 
         </div>
 

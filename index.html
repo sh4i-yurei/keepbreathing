@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!--
    keepbreath.ing
-   Author:  Mark Thompson
-   Date:   2026-06-05
-
+   Landing Page (init)
+   Author:   Mark Thompson
+   Date:     2026-06-05
    Filename: index.html
 -->
 <html lang="en">
@@ -19,22 +19,21 @@
 
 <body>
 
-    <!-- ============================================================
-         BACKGROUND CANVAS LAYERS
-         Phantom code + scan line — fixed, behind everything
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- BACKGROUND CANVAS LAYERS -->
+    <!-- ==================================================================== -->
     <canvas id="phantom" class="phantom"></canvas>
     <div class="scanline" data-scan></div>
     <div class="crt-overlay"></div>
+    <!-- Fixed full-viewport layers behind all content; support.js animates the phantom code and scan line. -->
 
 
-    <!-- ============================================================
-         SIDEBAR
-         Brand, status dot, navigation, social links
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- SIDEBAR -->
+    <!-- ==================================================================== -->
     <aside>
 
-        <!-- Brand -->
+        <!-- ------------------------------ Brand ------------------------------- -->
         <div class="brand">
             <div class="brand-top">
                 <a href="index.html">keepbreath<span class="dot">.</span>ing</a>
@@ -42,8 +41,9 @@
             </div>
             <div class="subtitle">traceroute.dev</div>
         </div>
+        <!-- Site wordmark linking home, with the live status dot and host tagline. -->
 
-        <!-- Navigation -->
+        <!-- ---------------------------- Navigation ---------------------------- -->
         <div class="nav-label"># navigation</div>
         <nav>
             <ul>
@@ -56,8 +56,9 @@
                 <li><a href="journey.html">uptime</a></li>
             </ul>
         </nav>
+        <!-- Same nav on every page; the current page carries class="active" (here, init). -->
 
-        <!-- Kana decorative overlay -->
+        <!-- --------------------------- Kana Overlay --------------------------- -->
         <div class="kana-overlay">
             <span class="kana">起</span>
             <span class="kana">誰</span>
@@ -67,8 +68,9 @@
             <span class="kana">連</span>
             <span class="kana">跡</span>
         </div>
+        <!-- Decorative Japanese characters positioned by .kana-overlay; purely visual. -->
 
-        <!-- Social Links -->
+        <!-- --------------------------- Social Links --------------------------- -->
         <div class="sidebar-bottom">
             <div class="sidebar-status">
                 <span class="status-label">status</span>
@@ -83,20 +85,17 @@
                 <a href="https://www.linkedin.com/in/mark-thompson-76587735/" target="_blank">linkedin</a>
             </div>
         </div>
+        <!-- Status readouts plus outbound GitHub and LinkedIn links; identical block on every page. -->
 
     </aside>
 
 
-    <!-- ============================================================
-         MAIN COLUMN
-         Top bar + page content
-    ============================================================ -->
+    <!-- ==================================================================== -->
+    <!-- MAIN COLUMN -->
+    <!-- ==================================================================== -->
     <main>
 
-        <!-- --------------------------------------------------------
-             TOP BAR
-             Traffic lights, page prompt, clock
-        -------------------------------------------------------- -->
+        <!-- ----------------------------- Top Bar ------------------------------ -->
         <header>
             <div class="traffic-lights">
                 <span class="tl-red"></span>
@@ -106,15 +105,9 @@
             <div class="prompt">mark@traceroute.dev:~/<span class="path">init</span>$</div>
             <div class="clock" id="clock"></div>
         </header>
+        <!-- Terminal-style title bar: traffic-light dots, the shell prompt showing the page path, and a live clock (#clock). -->
 
-        <!-- --------------------------------------------------------
-             PAGE CONTENT
-        -------------------------------------------------------- -->
-
-        <!-- --------------------------------------------------------
-             TERMINAL WINDOW
-             SSH boot sequence animation
-        -------------------------------------------------------- -->
+        <!-- ------------------------- Terminal Window -------------------------- -->
         <div class="terminal-window">
             <div class="terminal-titlebar">
                 <span class="tl-red"></span>
@@ -126,32 +119,30 @@
                 <div id="boot"></div>
             </div>
         </div>
+        <!-- Fake terminal that plays an SSH boot sequence; support.js types the lines into #boot. -->
 
-        <!-- --------------------------------------------------------
-             MATRIX RAIN CANVAS
-             Fills viewport during boot, dims to background on reveal
-        -------------------------------------------------------- -->
+        <!-- ------------------------ Matrix Rain Canvas ------------------------ -->
         <canvas id="matrix"></canvas>
+        <!-- Full-viewport matrix rain during boot; support.js dims it to the background once the page reveals. -->
 
-        <!-- Page content — hidden until boot sequence completes -->
+        <!-- --------------------------- Page Content --------------------------- -->
+        <!-- Everything below stays hidden until the boot animation finishes, then .hidden is removed. -->
         <div id="page-content" class="page-content hidden">
+
+        <!-- --------------------------- Page Heading --------------------------- -->
         <div class="hero-heading">
             <h1>Welcome to my <span class="accent">digital journey</span><span class="caret">▋</span></h1>
         </div>
+        <!-- Landing headline with the cyan accent phrase and blinking caret. -->
 
-        <!-- --------------------------------------------------------
-             CTAs
-             Primary: whois, Secondary: sendmail
-        -------------------------------------------------------- -->
+        <!-- ------------------------------- CTAs ------------------------------- -->
         <div class="ctas">
             <a href="about.html" class="cta-primary">./read_whois</a>
             <a href="contact.html" class="cta-secondary">sendmail --to mark</a>
         </div>
+        <!-- Primary call to action to the about page, secondary to the contact form. -->
 
-        <!-- --------------------------------------------------------
-             RECENT POSTS PANEL
-             Floats right, beside intro text
-        -------------------------------------------------------- -->
+        <!-- --------------------------- Recent Posts --------------------------- -->
         <div class="recent-posts">
             <div class="recent-posts-header">$ tail -n 2 stdout.log</div>
             <div class="post-entry">
@@ -181,21 +172,18 @@
             </div>
             <a href="blog.html" class="all-posts">→ all posts</a>
         </div>
+        <!-- Floated panel listing the latest posts, styled like a tail of stdout.log; placeholder copy for now. -->
 
-        <!-- --------------------------------------------------------
-             INTRO PARAGRAPH
-        -------------------------------------------------------- -->
+        <!-- ------------------------------ Intro ------------------------------- -->
         <div class="intro">
             <p><span class="namaste">Namaste!</span> I'm Mark, and this is my corner of the internet. It started with a DOS prompt and a kid who wanted to know why his commands weren't working, then with a phone line and a modem that suddenly put the rest of the world within reach. I used it to talk to people I'd never have met otherwise and to go looking for things that weren't meant to be easy for a kid to find. I've been fixing computers for other people since my teens, and I have never once been able to walk away from something before I understand how it works underneath. That never wore off. After years spent making a living other ways, I'm finally going after it head-on. I'm 46, autistic, a father of four and stepfather of two, and this is where I write it all down as it happens.</p>
             <p>I came to tech the long way around. I spent years in professional kitchens, did photography, and most recently delivery and courier work, and computers were the constant underneath all of it. Now I'm doing PC repair part time and studying Computer Networking and Cybersecurity at Hinds, building toward security work and eventually the machine learning and AI that's pulled at me for as long as I can remember. Going back to school wasn't a small decision and I didn't make it for a paycheck. It's me aiming everything I've got at the thing I kept circling back to.</p>
             <p>What I love is the hands-on part, taking something apart to see how it actually works. For me that's networking and security labs, home lab and self-hosting builds, electronics and hardware, and learning how things break so I understand how to defend them. It runs through the rest of my life too. I keep a garden and cook out of it, I aquascape and keep fish, I fly fish, and I shoot photos, and I lean on Buddhism to keep a still mind through all of it. It's one kind of curiosity pointed in a lot of directions.</p>
             <p>This is the journey, written down as I go. Stick around and see where it heads.</p>
         </div>
+        <!-- Four-paragraph introduction that wraps around the floated recent-posts panel. -->
 
-        <!-- --------------------------------------------------------
-             STATS ROW
-             System uptime, graduation countdown, GitHub commits
-        -------------------------------------------------------- -->
+        <!-- ---------------------------- Stats Row ----------------------------- -->
         <div class="stats-row">
             <div class="stat-card">
                 <div class="stat-value" id="uptime-counter">calculating...</div>
@@ -210,7 +198,10 @@
                 <div class="stat-label">total commits</div>
             </div>
         </div>
-        </div><!-- end page-content -->
+        <!-- Three live stat cards (uptime, graduation countdown, total GitHub commits), all updated by support.js. -->
+
+        </div>
+        <!-- end #page-content -->
 
 
     </main>
