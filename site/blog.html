@@ -131,6 +131,118 @@
         <!-- Each .post-item carries data-tags for filtering and an id for deep links; clicking a .post-row toggles its .post-full body (initBlogAccordion). Bodies are placeholder copy for now. -->
         <div class="blog-list">
 
+            <article class="post-item" id="nginx-migration" data-tags="homelab networking security">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-08-04</span>
+                    <span class="post-title">Migrating to nginx, and everything that wasn't nginx</span>
+                    <span class="post-tags"><span class="tag-net">#networking</span> <span class="tag-sec">#security</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>This site used to be <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> behind <a href="https://caddyserver.com/" target="_blank" rel="noopener">Caddy</a> on a DigitalOcean droplet. Now it's hand-coded HTML behind <a href="https://nginx.org/" target="_blank" rel="noopener">nginx</a> on the same droplet.</p>
+
+                    <h3>Why nginx, when Caddy was already sitting right there</h3>
+                    <p>Caddy is easier. It does automatic HTTPS, and I had a half-built Caddy setup on the box already. I went with nginx because it's the tool used everywhere in networking and security work, and I want to know it.</p>
+                    <p>The nginx config itself was about two hours of work. The pieces around it took longer: TLS through Cloudflare, locking the origin down, and staging tests between environments.</p>
+
+                    <h3>Building it in layers</h3>
+                    <p>The first version was plain HTTP on port 80. Events block, http block, one server block. Inside the server block: <code>include mime.types</code> so browsers got the right Content-Type, and <code>try_files $uri $uri/ =404</code> to fall through cleanly:</p>
+                    <pre><code>events {}
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    server {
+        listen 80;
+        server_name keepbreath.ing www.keepbreath.ing;
+
+        root  /usr/share/nginx/html;
+        index index.html;
+
+        location / {
+            try_files $uri $uri/ =404;
+        }
+    }
+}</code></pre>
+                    <p>That was the whole config at that point. No gzip, no security headers, no TLS. Gzip came next, then security headers, then TLS, then the firewall. Each layer was tested before the next went in.</p>
+                    <p>That mirrors real deploy practice. Every break has an obvious cause because only one thing has changed since the last known-good state. Batch a dozen changes into a single deploy and the same break sends you back through all of them to figure out which one caused it. I was deliberately practicing that discipline here.</p>
+                    <p>Locally I ran nginx under <a href="https://podman.io/" target="_blank" rel="noopener">podman</a>, not Docker. I'm on <a href="https://fedoraproject.org/atomic-desktops/kinoite/" target="_blank" rel="noopener">Fedora Kinoite</a>, which is immutable, and installing Docker on an immutable OS is fighting the system for no reason. Podman runs the same OCI images and reads the same compose files. It has some Fedora-flavored quirks (SELinux wants <a href="https://docs.podman.io/en/latest/markdown/podman-run.1.html" target="_blank" rel="noopener">a <code>:z</code> on volume mounts</a>, and it wants the fully-qualified image name where Docker assumes docker.io), but those are one-line fixes.</p>
+                    <p>Rootless podman published the port on IPv4 only, and <code>localhost</code> on this box resolves to IPv6 <code>::1</code> first, so <code>curl localhost:8090</code> came back empty. <code>curl 127.0.0.1:8090</code> worked immediately.</p>
+                    <figure>
+                        <img src="images/nginx-local-test.png" alt="nginx.conf open in the editor beside the podman access log, every request returning 200" width="1920" height="1080">
+                        <figcaption>Layer one, proven locally under podman: every page a 200 in the access log.</figcaption>
+                    </figure>
+
+                    <h3>Security headers, and the Google Fonts trap</h3>
+                    <p>Once the site was serving, I added the security headers, all with the <code>always</code> flag so they get sent on every response including errors. The set was <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code> (set to disable camera, mic, and geolocation), and <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy" target="_blank" rel="noopener"><code>Content-Security-Policy</code></a>.</p>
+                    <p>For the CSP I built the policy from what the site loads, not a generic template. That meant reading my own source: no inline scripts, no inline styles, no inline event handlers. That let me write a strict policy with no <code>unsafe-inline</code> in it anywhere. Ten minutes here. On any template-generated site it would have taken much longer.</p>
+                    <p>One trap in setting this up: Google Fonts loads from two different hosts. The stylesheet comes from <code>fonts.googleapis.com</code> and the font files come from <code>fonts.gstatic.com</code>. If you allow only the first, the CSS loads and the fonts silently fail. The browser gives you a CSP violation that reads like the font files are being blocked, because they are, because you told it to. You need <code>style-src</code> to allow googleapis and <code>font-src</code> to allow gstatic. The final directive:</p>
+                    <pre><code>add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://api.github.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'" always;</code></pre>
+                    <p>I left HSTS off at this stage. Forcing HTTPS from a header before the site can serve it locks the browser into a broken state. HSTS only makes sense once TLS is proven.</p>
+
+                    <h3>TLS behind Cloudflare</h3>
+                    <p>Cloudflare fronts this site, so the TLS story has two legs, and the second one is easy to misconfigure. The connection from the browser to Cloudflare needs a public certificate, which Cloudflare handles. The connection from Cloudflare to my origin server needs a certificate too, but it can be one that only Cloudflare trusts. That is what a <a href="https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/" target="_blank" rel="noopener">Cloudflare Origin Certificate</a> is: valid for fifteen years, trusted only by Cloudflare, useless to any other client. Cloudflare is the only thing that should be reaching my origin anyway.</p>
+                    <p>I generated the origin cert from the Cloudflare dashboard, covering the apex and the wildcard. Put the cert and key in a certs directory on the droplet, <code>chmod 600</code> on the key, added the certs directory to <code>.gitignore</code> so the private key can't be committed by accident. Kept an offline backup of both files as their own separate files. The TLS config was two server blocks. Port 80 became a bare 301 up to HTTPS. Port 443 did the actual serving with http2, TLS 1.2 and 1.3, the Cloudflare origin cert, and HSTS at a deliberately short <code>max-age=300</code> for the rollout:</p>
+                    <pre><code>server {
+    listen 80;
+    server_name keepbreath.ing www.keepbreath.ing;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name keepbreath.ing www.keepbreath.ing;
+
+    ssl_certificate     /etc/nginx/certs/origin.pem;
+    ssl_certificate_key /etc/nginx/certs/origin.key;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+
+    add_header Strict-Transport-Security "max-age=300; includeSubDomains" always;
+}</code></pre>
+                    <p>The short window meant I could unwind quickly if something was wrong.</p>
+                    <p>I keep an environment file outside the repo for a couple of values my tooling reads at startup. When I generated the origin cert, I pasted the certificate and the private key straight into that file, like <code>CERT=&lt;the whole PEM block&gt;</code>. That file gets sourced as a shell script, so the shell tried to run the pasted PEM as commands and the tooling fell over with a wall of errors. Nothing leaked, because the file lives outside the repo. The lesson is small and permanent: a sourced env file is <code>KEY=value</code> only. Certificates and keys go in their own files.</p>
+                    <p>I staging-tested the whole TLS setup on non-live ports (<code>8443</code>) before touching 443, because the live Hugo site was still up on 80 and 443 and I was not touching that until the new setup was proven from outside the box.</p>
+                    <figure>
+                        <img src="images/nginx-tls-staging-test.png" alt="Terminal on the droplet: curl to port 8443 returns HTTP/2 200 with the security headers, port 8090 returns a 301" width="1920" height="1080">
+                        <figcaption>Staging test on the droplet: 8443 answers HTTP/2 200 with the full header stack, 8090 redirects with a 301.</figcaption>
+                    </figure>
+
+                    <h3>The cutover, and locking the origin down</h3>
+                    <p>The cutover itself was uneventful, which is what staging is for. Stopped the Hugo container so it released ports 80 and 443, switched the nginx compose file to publish on those ports, brought nginx up. Flipped Cloudflare's SSL mode from Full to <a href="https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/" target="_blank" rel="noopener">Full (strict)</a> at the same moment, so Cloudflare now validates my origin certificate end to end instead of accepting whatever cert the origin presents. Plain Full is the trap where the origin cert is never checked, which makes it useless.</p>
+                    <p>I kept the old Hugo image on the box instead of deleting it. Retiring a container while keeping its image is a cheap rollback. If the new site had misbehaved, one command would have brought Hugo back.</p>
+                    <p>One hole remained. The origin was answering on 80 and 443 for anyone on the internet. Cloudflare was fronting the site, but if someone found my droplet's IP, they could hit it directly and bypass Cloudflare's WAF and DDoS protection entirely. The fix is to allow inbound 80 and 443 only from Cloudflare's own IP ranges.</p>
+                    <p>I did this with a <a href="https://docs.digitalocean.com/products/networking/firewalls/" target="_blank" rel="noopener">DigitalOcean Cloud Firewall</a>, applied at the edge before traffic reaches the droplet. Not <code>ufw</code> on the box. Docker writes its own iptables rules that bypass <code>ufw</code>, so if you rely on the host firewall for container ports, you have a firewall that reads correctly and quietly does nothing. With <a href="https://github.com/digitalocean/doctl" target="_blank" rel="noopener"><code>doctl</code></a>, pulled <a href="https://www.cloudflare.com/ips/" target="_blank" rel="noopener">Cloudflare's published IP ranges</a> from their API, wrote an inbound rule allowing 80 and 443 only from those ranges, left SSH open so I didn't lock myself out:</p>
+                    <pre><code>doctl compute firewall create --name keepbreath-cf-only \
+  --inbound-rules "protocol:tcp,ports:80,address:173.245.48.0/20,address:103.21.244.0/22,..." \
+  --inbound-rules "protocol:tcp,ports:443,address:173.245.48.0/20,address:103.21.244.0/22,..." \
+  --inbound-rules "protocol:tcp,ports:22,address:0.0.0.0/0,address:::/0"</code></pre>
+                    <p>Then I tested from three angles. The site loaded through Cloudflare. SSH still worked. A direct HTTP request to the origin IP failed with HTTP 000 instead of serving the site. A firewall you don't test from the outside is a guess.</p>
+
+                    <h3>Raising HSTS, and a Docker inode gotcha</h3>
+                    <p>With HTTPS proven stable, I raised HSTS from the 300-second rollout value to a full year. Edited <code>nginx.conf</code>, pushed the change, pulled on the droplet, ran <code>nginx -s reload</code>. Ran <code>curl -I</code> against the site to confirm.</p>
+                    <p><code>max-age</code> was still 300.</p>
+                    <p>Ran reload again. Still 300. Checked the config file inside the container. Definitely the new value. Reload was completing without errors. The header was old.</p>
+                    <p>The cause is a subtle Docker behavior. I had <a href="https://docs.docker.com/engine/storage/bind-mounts/" target="_blank" rel="noopener">bind-mounted</a> the nginx.conf as a single file. When you mount a file into a container, Docker resolves that mount to the file's inode at container start. <code>git pull</code> does not edit files in place. It replaces them with new files, which means a new inode. The container was still pointed at the original inode. That file no longer had a directory entry, but it still existed because the container had it open. nginx reloaded honestly. It just reloaded the config it could see, which was the stale one.</p>
+                    <p>Reload alone didn't take. <code>docker restart</code> did:</p>
+                    <pre><code>git pull
+nginx -s reload
+curl -sI https://keepbreath.ing | grep -i strict
+# strict-transport-security: max-age=300; includeSubDomains   &lt;- still stale!
+
+docker restart keepbreath
+curl -sI https://keepbreath.ing | grep -i strict
+# strict-transport-security: max-age=31536000; includeSubDomains</code></pre>
+                    <p>The real fix is to bind-mount the config directory instead of the single file, so an inode swap on the file inside no longer matters. That's on the backlog now.</p>
+
+                    <h3>What I learned</h3>
+                    <p>Curl looked broken because <code>localhost</code> resolved to IPv6 while podman had only bound the port on IPv4. A pasted certificate became a shell command because I put it in a file that got sourced. A squash-merge left <code>git branch -d</code> complaining a branch wasn't merged. Docker served a stale config because the bind mount was pinned to an inode <code>git pull</code> had orphaned. Docker's iptables writes bypass <code>ufw</code> entirely, which is why the firewall had to live at the DO edge.</p>
+                    <p>The current box is running end-of-life Ubuntu and needs to be replaced. There's a saying you'll hear in DevOps circles: "cattle, not pets." The phrase was coined around 2011 by Bill Baker at Microsoft and popularized by Randy Bias of CloudScaling. Pets are servers you name, feed, and nurse back to health when they break. Cattle are numbered, interchangeable, and replaced when they fail. The point of keeping your infrastructure in code is to move a server from the first category to the second.</p>
+                    <p>Because my whole stack now lives in git, this box is cattle. The next post is standing up an identical stack on a fresh LTS droplet and cutting DNS over to it.</p>
+                </div>
+            </article>
+
             <article class="post-item" id="homelab" data-tags="homelab networking security">
                 <button class="post-row" type="button" aria-expanded="false">
                     <span class="post-date">2026-07-05</span>
