@@ -1086,6 +1086,19 @@ body.glitching {
    margin-top: 12px;
 }
 
+/* Inline links in a post body: cyan site accent with a faint underline so they read as links inside prose (not distinguished by color alone) */
+.post-full a {
+   color: var(--cyan);
+   text-decoration: underline;
+   text-decoration-color: rgba(0, 255, 209, 0.35);
+   text-underline-offset: 2px;
+}
+
+.post-full a:hover {
+   color: var(--text-bright);
+   text-decoration-color: var(--text-bright);
+}
+
 /* Section headings inside a post body, marked with a cyan "## " like a shell/markdown heading */
 .post-full h3 {
    margin: 22px 0 8px;
