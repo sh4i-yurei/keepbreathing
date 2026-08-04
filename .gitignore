@@ -4,8 +4,12 @@ Thumbs.db
 *.swp
 .vscode/
 .idea/
-\# private planning -never publish
+
+# private planning — never publish
 ROADMAP.md
 
 # private blog drafts and notes
 docs/
+
+# TLS certificate and key — never publish
+deploy/certs/
