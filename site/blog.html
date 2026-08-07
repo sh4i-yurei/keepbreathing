@@ -131,6 +131,182 @@
         <!-- Each .post-item carries data-tags for filtering and an id for deep links; clicking a .post-row toggles its .post-full body (initBlogAccordion). Some bodies are full posts; the rest are still placeholder copy. -->
         <div class="blog-list">
 
+            <article class="post-item" id="mail-identity" data-tags="homelab networking security">
+                <button class="post-row" type="button" aria-expanded="false">
+                    <span class="post-date">2026-08-06</span>
+                    <span class="post-title">Setting up contact@keepbreath.ing before I wire in the contact form</span>
+                    <span class="post-tags"><span class="tag-lab">#homelab</span> <span class="tag-net">#networking</span> <span class="tag-sec">#security</span></span>
+                    <span class="post-toggle" aria-hidden="true"></span>
+                </button>
+                <div class="post-full">
+                    <p>I've been putting this together over the last couple of days, mostly in downtime between shifts at work, and last night I stayed up until about 2 AM getting it across the line. Classes start Monday, and I want the site mostly finished (short of the project blog posts) before the semester eats my evenings. Before I got started I read a handful of tutorials and watched some <a href="https://www.learnlinux.tv/" target="_blank" rel="noopener">Learn Linux TV</a> videos, because self-hosted mail has a well-earned reputation for being fussy and I wanted the shape of the thing before I typed the first command.</p>
+                    <p>The contact form on keepbreath.ing has been sitting there as static HTML since I built the site for my capstone last term. Wiring up the backend is finally on the list. Before I did that, I needed the piece under the form: a working contact@keepbreath.ing address that I can both send from and receive on, with my Gmail as the actual inbox behind it.</p>
+                    <p>Any reply I send from Gmail would otherwise leak the address I'm replying from, and I don't want a public contact page that ends up publishing my personal Gmail every time I answer someone. I knew this going in when I planned the site. It just took getting to this phase of the project to actually build the fix.</p>
+                    <p>Free-tier services do the whole two-way-address thing for you. I self-hosted it instead. It's cheaper long-term, I get to set it up the way I want, and I keep control over my data. I also just wanted to know how the machine works. Security has been a priority for me from the beginning of this site, so building the mail path myself, where I could see what was happening at each step, felt like the right call.</p>
+                    <p>This post is about the mail identity. The next one, once I've wired the endpoint in, is about the form.</p>
+
+                    <h3>The address and the mail server</h3>
+                    <p>The public-facing address is contact@keepbreath.ing. The mail server behind it lives at mail.keepbreath.ing, on its own A record with its own reverse DNS. Keeping the mail infrastructure on a subdomain keeps its reputation scoped to that subdomain instead of spilling onto the apex.</p>
+                    <p>The address itself is really a set of DNS records. As long as those records stay valid, whatever server is answering underneath is replaceable. I renamed the droplet halfway through this build (more on that in Step 3), and the address kept working straight through the change because the address was in DNS and not on the box.</p>
+
+                    <h3>Step 1: receiving with Cloudflare Email Routing</h3>
+                    <p>I set up the inbound side using <a href="https://developers.cloudflare.com/email-routing/" target="_blank" rel="noopener">Cloudflare Email Routing</a>, which is free and doesn't need a server of its own. I added a rule that forwards contact@keepbreath.ing into my Gmail. That put a working inbox behind the public address, and it meant anyone writing to contact@ would never see the Gmail address underneath.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/cf-email-routing-rule.png" alt="Cloudflare Email Routing showing a custom-address rule that forwards contact@keepbreath.ing to a Gmail inbox" width="1920" height="875">
+                        <figcaption>The Cloudflare Email Routing rule: mail to contact@ forwards into Gmail. The destination address is blanked out.</figcaption>
+                    </figure>
+                    <p>I did the receiving side first because Step 4 was going to send a verification link to contact@, and I needed a working inbox to click through when it arrived.</p>
+                    <p>I tested the setup by sending a message from the droplet, which had no email authentication configured yet. Cloudflare refused it:</p>
+                    <pre><code>550 5.7.26 Cannot forward emails that are not authenticated</code></pre>
+                    <p>A separate spoofed-sender test came back with a similar refusal. Cloudflare will not forward mail from a sender it can't authenticate. To test the forwarding rule properly I needed to send from an authenticated sender, so I sent a message from my personal Gmail account, and that one went through immediately.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/cf-email-routing-activity-log.png" alt="Cloudflare Email Routing activity log with one authenticated message forwarded in green and two unauthenticated droplet attempts rejected in red" width="1920" height="875">
+                        <figcaption>The activity log tells the story: the authenticated Gmail send forwarded (green), the two unauthenticated droplet attempts rejected (red).</figcaption>
+                    </figure>
+                    <p>Cloudflare is doing exactly what most mail receivers on the internet do with unauthenticated mail. Step 3 is where I built the authentication so my own sending would pass those same checks.</p>
+
+                    <h3>Step 2: sending my own mail with Postfix</h3>
+                    <p>Free Gmail can't send from a custom domain through Google's own servers, because that's a paid Workspace feature. What free Gmail can do is log into an outside SMTP server, hand off a message, and let that server handle delivery to the recipient. So to reply as contact@, I needed my own SMTP server for Gmail to log into.</p>
+                    <p>I chose <a href="https://www.postfix.org/" target="_blank" rel="noopener">Postfix</a>. It's well-documented and most tutorials use it, which made it a sensible default for what I was doing. For the Postfix + Dovecot structure I leaned heavily on Christoph Haas's <a href="https://workaround.org/" target="_blank" rel="noopener">ISPmail guide</a>, which is the most thorough self-hosted mail tutorial I found and the one many other guides cite as their starting point. Most of this configuration happened at the terminal rather than in a UI. I still struggle with wrapping my head around a lot of Linux commands, but I get overwhelmed hunting through nested UIs faster than I do sitting with a config file, so the more I do at the terminal the more comfortable I get.</p>
+                    <p>Postfix on this box does two related jobs. It runs a submission service on port 587 that Gmail authenticates to and hands outgoing mail to, and it runs a relay on port 25 that delivers those messages onward to the recipient's mail server. It's the same daemon running as two services.</p>
+                    <p>I built the whole thing up in layers, starting with identity, then TLS, then authentication, then the submission port itself, and finally opening the firewall. Between most of these steps I got up, walked around, and came back to it. My ADHD means I work in short focused bursts with breaks in between, and a config file this dense is exactly the kind of thing that starts to blur if I stare at it too long.</p>
+
+                    <h3>Postfix identity</h3>
+                    <p>There were three settings I had to change from the installer defaults.</p>
+                    <p>The first was <code>myhostname = mail.keepbreath.ing</code>, which is what Postfix announces when it greets another server. It has to match the mail DNS record, the certificate's Common Name, and the reverse DNS. The Debian installer had set it to the bare <code>keepbreath.ing</code>, which would have failed every one of those matches, so I corrected it.</p>
+                    <p>The second was <code>mydestination = $myhostname, localhost</code>, which is the list of domains this server considers local. I deliberately kept the parent domain off the list. Cloudflare is the MX for keepbreath.ing, so if this box also claimed the domain it would try to keep mail for @keepbreath.ing locally, and that would break the inbound routing from Step 1. The installer default included both the parent domain and a <code>localhost.ing</code> artifact from the <code>.ing</code> TLD, both of which I removed. The <code>.ing</code> artifact caught me by surprise the first time I read the config. Most defaults assume a .com domain, and there are a few places in the mail stack where a short TLD makes the automatic naming behave oddly.</p>
+                    <p>The third was <code>mynetworks = 127.0.0.0/8 [::1]/128</code>, which sets loopback as the only network trusted to relay without authenticating. Only processes running on the box itself get that trust. Gmail isn't on the box, so Gmail has to log in like any other remote client. That's half of the defense against becoming an open relay for the internet.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/cf-dns-records.png" alt="Cloudflare DNS panel showing the mail.keepbreath.ing A record set to DNS-only (grey cloud)" width="1920" height="875">
+                        <figcaption>The mail subdomain as a DNS-only (grey-cloud) A record, so it resolves straight to the droplet. Origin IPs are blanked out.</figcaption>
+                    </figure>
+
+                    <h3>TLS</h3>
+                    <p>No password is going over the wire in cleartext, so TLS has to work before I can turn on authentication.</p>
+                    <p>I pointed Postfix at a <a href="https://letsencrypt.org/" target="_blank" rel="noopener">Let's Encrypt</a> certificate for mail.keepbreath.ing, obtained via DNS-01 through Cloudflare because I didn't want to expose an HTTP challenge endpoint on the box. The certificate's Common Name is mail.keepbreath.ing, which matches <code>myhostname</code>. A Cloudflare Origin Certificate wouldn't work in this position because only Cloudflare trusts those, and a self-signed certificate would be refused by mail clients.</p>
+                    <p>For port 25 I set <code>smtpd_tls_security_level = may</code>, which is opportunistic encryption. It uses TLS if the sender's server supports it and accepts plaintext otherwise. That's the right posture on port 25, because you can't force every mail server on the internet to have TLS. Port 587 requires TLS, and that setting comes a few paragraphs down.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/certbot-cert-issued.png" alt="certbot output confirming a Let's Encrypt certificate was issued for mail.keepbreath.ing via the DNS-01 challenge" width="1920" height="358">
+                        <figcaption>certbot issues the Let's Encrypt certificate for mail.keepbreath.ing over DNS-01, with automatic renewal scheduled.</figcaption>
+                    </figure>
+                    <p>Somewhere around the end of the TLS work I hit a wall and needed a real break. I stepped away from the terminal, grilled myself some bratwurst and rice pilaf, and let my brain digest what I'd wired up before coming back to authentication.</p>
+
+                    <h3>SASL through Dovecot</h3>
+                    <p>Postfix doesn't check submission passwords itself. It hands the check to a SASL provider. I used <a href="https://www.dovecot.org/" target="_blank" rel="noopener">Dovecot</a> as that provider, with no mailboxes and no IMAP running. The inbox lives in Gmail via the Cloudflare routing from Step 1.</p>
+                    <p>The submission credential for contact@keepbreath.ing sits in <code>/etc/dovecot/passwd</code> as a SHA512-CRYPT hash. The plaintext is only in my offline password manager, because I need it once more in Step 4. Reading the file on the server exposes nothing usable to an attacker.</p>
+                    <p>I disabled Dovecot's default PAM passdb explicitly, because a mail submission credential shouldn't double as a way to log into a Linux account.</p>
+                    <p>Postfix and Dovecot talk to each other over a Unix socket that Dovecot places inside Postfix's chroot at <code>/var/spool/postfix/private/auth</code>. Two Postfix directives point at that socket:</p>
+                    <pre><code>smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth</code></pre>
+                    <p>I confirmed the credential worked before exposing anything to the network:</p>
+                    <pre><code>$ doveadm auth test contact@keepbreath.ing
+auth succeeded</code></pre>
+                    <p>Seeing that <code>auth succeeded</code> line was the first real sign the plumbing was actually connected. Everything before it had been configuration on faith.</p>
+
+                    <h3>The submission service on port 587</h3>
+                    <p>Port 25 accepts inbound mail from other servers. Port 587 is a separate service for authenticated outbound clients. Postfix runs both from the same daemon using per-port overrides in master.cf.</p>
+                    <p>The 587 block overrides five settings from the defaults. It requires TLS, enables SMTP AUTH, adds the two open-relay guards, and gives the service its own log label so I can grep for it:</p>
+                    <pre><code>submission inet n       -       y       -       -       smtpd
+  -o syslog_name=postfix/submission
+  -o smtpd_tls_security_level=encrypt
+  -o smtpd_sasl_auth_enable=yes
+  -o smtpd_relay_restrictions=permit_sasl_authenticated,reject
+  -o smtpd_client_restrictions=permit_sasl_authenticated,reject</code></pre>
+                    <p>The <code>permit_sasl_authenticated, reject</code> value on both restriction lines is what actually keeps the service from being an open relay. Any client that has authenticated is allowed to relay through the service, and anything else is refused. There's deliberately no <code>permit_mynetworks</code> on this service, because port 587 is meant for remote authenticated clients rather than local processes, and letting a local process relay through it would open a hole.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/postfix-submission-service.png" alt="The Postfix master.cf submission service block on port 587 with its five override lines" width="820" height="190">
+                        <figcaption>The finished 587 submission block, including the open-relay guard smtpd_relay_restrictions=permit_sasl_authenticated,reject.</figcaption>
+                    </figure>
+                    <p>Before opening the firewall I ran an open-relay test with <a href="https://www.jetmore.org/john/code/swaks/" target="_blank" rel="noopener">swaks</a>. I connected to Postfix on the loopback, skipped authentication, and asked it to relay to an outside address. It refused:</p>
+                    <pre><code>554 5.7.1 &lt;localhost[127.0.0.1]&gt;: Client host rejected: Access denied</code></pre>
+                    <p>That refusal was the one I actually wanted to see. It's the whole point of the restriction lines above, and it landed exactly the way the config said it should.</p>
+                    <p>The same test showed two other things I wanted to check. AUTH was only advertised in the EHLO reply after STARTTLS (the pre-STARTTLS EHLO didn't include AUTH at all), so a password can never be offered before the connection is encrypted. And the certificate presented was the real Let's Encrypt one, served over TLS 1.3.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/postfix-open-relay-test.png" alt="A swaks test session where an unauthenticated relay attempt is refused with 554 Access denied, and AUTH appears only after STARTTLS" width="1920" height="841">
+                        <figcaption>swaks proves it: an unauthenticated relay is refused with 554, AUTH shows up only after STARTTLS, and the real Let's Encrypt cert is served over TLS 1.3.</figcaption>
+                    </figure>
+
+                    <h3>Opening 587 in the firewall</h3>
+                    <p>Once the open-relay test passed, I added one inbound rule to the <a href="https://docs.digitalocean.com/products/networking/firewalls/" target="_blank" rel="noopener">DigitalOcean Cloud Firewall</a> for <code>tcp/587</code> from <code>0.0.0.0/0</code> and <code>::/0</code>. I added it via the DigitalOcean API using curl from my laptop. My DO API token lives in the laptop's password manager and has never been on the droplet. That token can create and destroy anything in the account, so there's no reason for it to sit on a server.</p>
+                    <p>I considered restricting 587 to Google's IP ranges instead of leaving it open. Gmail's send-as relay uses a broad and shifting set of Google addresses, and keeping an allowlist current would be a maintenance chore. So I left the port open to everyone, and the port's protection is TLS, SASL authentication, and the open-relay guards. The consequence of leaving it open is that internet bots will try to brute-force the login. They won't guess a long random password, and if they somehow did, they still couldn't relay. Adding fail2ban to auto-ban repeated attempts is on my follow-up list.</p>
+                    <p>I verified the port was reachable from an outside machine:</p>
+                    <pre><code>$ nc mail.keepbreath.ing 587
+220 mail.keepbreath.ing ESMTP Postfix</code></pre>
+
+                    <h3>Step 3: publishing SPF, DKIM, and DMARC</h3>
+                    <p>The next thing I set up was the DNS records that mail receivers use to decide whether to trust mail from my domain. If those records aren't right, no amount of well-configured Postfix helps. There are three of them, plus a reverse DNS record on the droplet's IP.</p>
+
+                    <h3>SPF</h3>
+                    <p>SPF is a DNS TXT record that names which servers are authorized to send mail for your domain. Cloudflare Email Routing had already published one for me:</p>
+                    <pre><code>v=spf1 include:_spf.mx.cloudflare.net ~all</code></pre>
+                    <p>That authorized Cloudflare's servers and nothing else. My droplet, now also a sender, wasn't on the list. A receiver checking SPF on mail from my IP would see the IP wasn't authorized to send as keepbreath.ing.</p>
+                    <p>A domain has exactly one SPF record. Adding a second one breaks SPF entirely for the domain, so instead of publishing a new record I edited the existing one through Cloudflare's API:</p>
+                    <pre><code>v=spf1 ip4:YOUR.DROPLET.IP include:_spf.mx.cloudflare.net ~all</code></pre>
+                    <p>I kept <code>~all</code> (softfail) rather than moving to <code>-all</code> (hardfail) for now. Softfail tells receivers to treat unauthorized senders as suspicious, and hardfail tells them to reject outright. I want to watch my own mail behave cleanly for a while before asking receivers to hardfail on anything.</p>
+
+                    <h3>DKIM</h3>
+                    <p>SPF checks the sending IP. DKIM goes further. It attaches a cryptographic signature to every outgoing message using a private key on the sending server, and it publishes the matching public key in DNS. Receivers use the public key to verify that a message really came from the domain and hasn't been altered in transit. Unlike SPF, DKIM signatures also survive forwarding.</p>
+                    <p>I installed <a href="http://www.opendkim.org/" target="_blank" rel="noopener">OpenDKIM</a> as the signing daemon, generated a 2048-bit RSA key pair, and published the public key at <code>mail._domainkey.keepbreath.ing</code>. For the OpenDKIM configuration and its integration with Postfix I mostly worked from <a href="https://www.linuxbabe.com/mail-server/spf-dkim-postfix-debian-server" target="_blank" rel="noopener">LinuxBabe's mail server tutorials</a>, which walk through the signing setup and the follow-on OpenDMARC piece step by step. My selector is <code>mail</code>. Cloudflare's existing DKIM record uses a different selector (<code>cf2024-1</code>), so both records live in DNS without conflicting.</p>
+                    <p>Two OpenDKIM defaults were wrong on this system, and I caught them from reading through the config carefully before touching anything else. The default socket is a Unix socket at <code>/run/opendkim/opendkim.sock</code>, which chrooted Postfix cannot reach. I changed it to <code>inet:8891@localhost</code> so Postfix could talk to it regardless of chroot, and this was the same problem I'd already run into with Dovecot. The second one is that <code>/etc/default/opendkim</code> is a legacy file that systemd ignores on modern distributions, which means all settings have to be in <code>/etc/opendkim.conf</code> instead. Catching both of these before starting the service saved me the debugging time I would otherwise have spent on them.</p>
+                    <p>Then I wired OpenDKIM into Postfix as a milter, which is Postfix's plugin interface for filters that inspect or modify mail as it passes through:</p>
+                    <pre><code>smtpd_milters = inet:localhost:8891
+non_smtpd_milters = inet:localhost:8891
+milter_default_action = accept</code></pre>
+                    <p>The <code>milter_default_action = accept</code> line is deliberate. If OpenDKIM ever falls over, Postfix will pass mail through unsigned rather than dropping it. For a personal contact address I'd rather have quiet degradation than an outage.</p>
+                    <p>I verified the DNS record against the private key with <code>opendkim-testkey</code>, which returned <code>key OK</code>. There's also a <code>key not secure</code> message that comes alongside, which is just the tool telling me I haven't set up DNSSEC on the domain, and DNSSEC isn't in scope for this build.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/postfix-opendkim-milter.png" alt="Terminal showing OpenDKIM wired into Postfix as a milter and ss confirming opendkim listening on 127.0.0.1:8891" width="1920" height="513">
+                        <figcaption>OpenDKIM wired in as a milter, and ss confirming it listening on 127.0.0.1:8891.</figcaption>
+                    </figure>
+
+                    <h3>DMARC</h3>
+                    <p>DMARC sits on top of SPF and DKIM. It does two things at once. It tells receivers what to do with mail from your domain that fails both checks, and it asks receivers to send back reports about who is sending mail as your domain.</p>
+                    <p>I published a minimal DMARC record at <code>_dmarc.keepbreath.ing</code>:</p>
+                    <pre><code>v=DMARC1; p=none; rua=mailto:contact@keepbreath.ing</code></pre>
+                    <p><code>p=none</code> is monitor mode. It doesn't ask receivers to do anything to failing mail; it just asks them to send reports. I want to see the reports and confirm my own mail is passing both checks before tightening the policy to quarantine or reject. The reports come back to contact@, which the inbound routing from Step 1 forwards into Gmail.</p>
+
+                    <h3>The reverse DNS problem</h3>
+                    <p>I ran a test message through <a href="https://www.mail-tester.com/" target="_blank" rel="noopener">mail-tester</a>, which grades outgoing mail against the standard authentication checks. It came back at 8.9 out of 10. The only real ding was <code>RDNS_NONE</code>.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/mail-tester-rdns-before.png" alt="mail-tester result flagging that reverse DNS does not match the sending domain, with the tested HELO and rDNS values" width="1920" height="875">
+                        <figcaption>Before the fix: mail-tester's reverse-DNS complaint, HELO mail.keepbreath.ing against an rDNS of keepbreath.ing. The IP is blanked out.</figcaption>
+                    </figure>
+                    <p>Reverse DNS is a lookup that takes an IP address and returns a hostname. A receiver getting mail from my droplet's IP can ask DNS "what's the name of that IP?" and expect a well-configured mail server to answer with a name that matches its <code>myhostname</code> and forward-resolves back to the IP. A mail server whose reverse lookup goes nowhere, or points to a name that doesn't forward-resolve back, doesn't look trustworthy from the receiver's side.</p>
+                    <p>Meanwhile in Gmail's Show Original view for the same message, SPF, DKIM, and DMARC all showed PASS, and the message had still gone to my Gmail spam folder. The rig gave me a near-perfect score and Gmail put the message in spam anyway. I couldn't find that gap explained in any of the tutorials I read, and I spent a while wracking my brain trying to find a path through it. Most of the useful information I ended up finding came from <a href="https://docs.digitalocean.com/products/networking/dns/how-to/manage-records/" target="_blank" rel="noopener">DigitalOcean's own DNS documentation</a> and from digging through community forum threads where other people had hit the same issue.</p>
+                    <p>The reason for the <code>RDNS_NONE</code> ding is a DigitalOcean-specific quirk in how droplet naming maps to PTR records. On DigitalOcean there's no separate PTR field for a droplet. The PTR record for a droplet's IP is derived from the droplet's name, and that name has to be a fully-qualified domain name that forward-resolves back to the droplet's IP.</p>
+                    <p>My droplet was named keepbreath.ing, so DigitalOcean had set its PTR to keepbreath.ing. But keepbreath.ing is Cloudflare-proxied, which means any DNS lookup for that name returns a Cloudflare address rather than my droplet's IP. A receiver running the check "does this IP's reverse-DNS name forward-resolve back to this IP?" got a mismatch every time, and that mismatch is what <code>RDNS_NONE</code> means.</p>
+                    <p>I couldn't rename the droplet to some arbitrary domain and have the check pass, because the apex is proxied through Cloudflare. The only name that forward-resolves straight to the droplet is mail.keepbreath.ing, which I'd left unproxied. So I renamed the droplet from keepbreath.ing to mail.keepbreath.ing through the DO API. The rename updated the PTR automatically. There was no downtime and no reboot, and propagation took a few minutes.</p>
+                    <p>I re-ran mail-tester, which came back with 10 out of 10 and no <code>RDNS_NONE</code> ding.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/mail-tester-10of10.png" alt="mail-tester result reading 'Wow! Perfect, you can send' with a score of 10 out of 10" width="1920" height="875">
+                        <figcaption>After renaming the droplet: 10 out of 10, and the RDNS_NONE ding gone.</figcaption>
+                    </figure>
+                    <p>Renaming the droplet to mail.keepbreath.ing fixed the reverse DNS problem, but I wasn't happy leaving the whole box named after its mail role when the same droplet still hosts the site itself. That gave me an obvious next project: spin up a second droplet, migrate the site to it, and let the original box stay dedicated to the mail server and (eventually) the Flask backend. DO droplets are cheap enough that I can afford to run a second one, and the split gives me a clean separation between the public web front and the services running behind it. Really I'm treating this whole site as a long-running platform for hands-on learning across web development, hosting, and the various ways servers and clients talk to each other. The plan is to keep building it out over time, adding functionality that gives me an excuse to learn something new each time. Splitting the site off from the mail server is the first of those experiments.</p>
+
+                    <h3>Step 4: telling Gmail to use it</h3>
+                    <p>In Gmail's settings I went to Accounts and Import, then Send mail as, then Add another email address. I entered contact@keepbreath.ing, gave <code>mail.keepbreath.ing:587</code> as the SMTP server, checked the TLS box, and pasted the SASL credential from the offline password manager. Gmail sent a verification link to contact@, which forwarded through Cloudflare into the same Gmail inbox. I clicked through it.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/gmail-sendas-verified.png" alt="Gmail confirmation that it located the mail server, verified the credentials, and sent a confirmation link to contact@keepbreath.ing" width="1920" height="315">
+                        <figcaption>Gmail locates mail.keepbreath.ing, verifies the submission credential, and sends the confirmation link to contact@.</figcaption>
+                    </figure>
+                    <p>Now contact@keepbreath.ing is a selectable identity in Gmail's From dropdown. Anything I send from that identity goes out through my own SMTP server, gets DKIM-signed on the way, and arrives at the recipient as if it had come directly from contact@keepbreath.ing. My Gmail address isn't in any header the recipient can see.</p>
+                    <p>I sent one final test from Gmail-as-contact@ to mail-tester, and it came back at 10 out of 10 on the actual path I'll be using in practice.</p>
+
+                    <h3>What Gmail did with the first messages</h3>
+                    <p>The very first test message I sent to my own Gmail account (before the PTR fix) went straight to spam. This wasn't a surprise. SPF, DKIM, and DMARC all passed in the Show Original view, but a brand-new sending IP from a random droplet doesn't get inbox placement, and I knew that going in. Reputation takes time to build.</p>
+                    <p>What I was really watching for was the retest after the PTR fix. When I sent that one, Gmail briefly held it with a 4xx "try again later" response before accepting it a few minutes later. That's greylisting: the receiver refuses the first delivery attempt with a temporary failure code and waits to see whether the sender comes back. Postfix's default behavior is to retry deferred deliveries on a backoff schedule, so my server tried again a few minutes later and Gmail accepted it. The message landed in the inbox with all three authentication checks green in Show Original, and that was the moment I knew the finish line was in view. Everything else was going to be time and consistent sending.</p>
+                    <figure>
+                        <img src="images/blog/mail-identity/gmail-auth-pass.png" alt="Gmail 'Show original' view of a delivered message with SPF, DKIM, and DMARC each showing PASS" width="1920" height="875">
+                        <figcaption>Gmail's "Show original" on a delivered message: SPF, DKIM, and DMARC all PASS. The Gmail address and sending IP are blanked out.</figcaption>
+                    </figure>
+                    <p>The greylisting isn't a failure. It's a normal check on a first-time sender, and my server responding to it correctly is one small piece of the reputation Gmail is watching for.</p>
+                    <p>I also noticed something about outbound port 25 on new DigitalOcean droplets. Community forums and many tutorials will tell you DigitalOcean blocks outbound 25 on new droplets by default. Mine wasn't blocked, but my droplet has been up for about a year and a half, and DigitalOcean lifts that restriction on accounts and droplets they've had time to observe behaving cleanly. If your droplet is new, you'll probably need to request the block be lifted or wait until your account has aged in.</p>
+
+                    <h3>Next up</h3>
+                    <p>The next post is about the actual contact form: a Flask endpoint, server-side validation, a honeypot, and a rate limit, all wired into the mail identity from this post. Once that ships, submissions from the site's contact page will arrive in my Gmail through the pipeline described here, and any reply I send will go out as contact@keepbreath.ing. After that, the droplet split I mentioned in Step 3 is next on the list.</p>
+                </div>
+            </article>
+
             <article class="post-item" id="nginx-migration" data-tags="dev networking security">
                 <button class="post-row" type="button" aria-expanded="false">
                     <span class="post-date">2026-08-04</span>
