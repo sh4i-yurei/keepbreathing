@@ -228,7 +228,7 @@ auth succeeded</code></pre>
 
                     <h3>Opening 587 in the firewall</h3>
                     <p>Once the open-relay test passed, I added one inbound rule to the <a href="https://docs.digitalocean.com/products/networking/firewalls/" target="_blank" rel="noopener">DigitalOcean Cloud Firewall</a> for <code>tcp/587</code> from <code>0.0.0.0/0</code> and <code>::/0</code>. I added it via the DigitalOcean API using curl from my laptop. My DO API token lives in the laptop's password manager and has never been on the droplet. That token can create and destroy anything in the account, so there's no reason for it to sit on a server.</p>
-                    <p>I considered restricting 587 to Google's IP ranges instead of leaving it open. Gmail's send-as relay uses a broad and shifting set of Google addresses, and keeping an allowlist current would be a maintenance chore. So I left the port open to everyone, and the port's protection is TLS, SASL authentication, and the open-relay guards. The consequence of leaving it open is that internet bots will try to brute-force the login. They won't guess a long random password, and if they somehow did, they still couldn't relay. Adding fail2ban to auto-ban repeated attempts is on my follow-up list.</p>
+                    <p>I considered restricting 587 to Google's IP ranges instead of leaving it open. Gmail's send-as relay uses a broad and shifting set of Google addresses, and keeping an allowlist current would be a maintenance chore. So I left the port open to everyone, and the port's protection is TLS, SASL authentication, and the open-relay guards. The consequence of leaving it open is that internet bots will try to brute-force the login. A long random password makes guessing it impractical, but I'm not going to pretend a compromised credential is harmless: an authenticated client is allowed to relay, so a stolen or guessed password would be a real spam channel. That's exactly why the password is long and random, and why fail2ban to auto-ban repeated attempts and log monitoring are on my follow-up list.</p>
                     <p>I verified the port was reachable from an outside machine:</p>
                     <pre><code>$ nc mail.keepbreath.ing 587
 220 mail.keepbreath.ing ESMTP Postfix</code></pre>
@@ -255,8 +255,8 @@ milter_default_action = accept</code></pre>
                     <p>The <code>milter_default_action = accept</code> line is deliberate. If OpenDKIM ever falls over, Postfix will pass mail through unsigned rather than dropping it. For a personal contact address I'd rather have quiet degradation than an outage.</p>
                     <p>I verified the DNS record against the private key with <code>opendkim-testkey</code>, which returned <code>key OK</code>. There's also a <code>key not secure</code> message that comes alongside, which is just the tool telling me I haven't set up DNSSEC on the domain, and DNSSEC isn't in scope for this build.</p>
                     <figure>
-                        <img src="images/blog/mail-identity/postfix-opendkim-milter.png" alt="Terminal showing OpenDKIM wired into Postfix as a milter and ss confirming opendkim listening on 127.0.0.1:8891" width="1920" height="513">
-                        <figcaption>OpenDKIM wired in as a milter, and ss confirming it listening on 127.0.0.1:8891.</figcaption>
+                        <img src="images/blog/mail-identity/postfix-opendkim-milter.png" alt="Terminal showing OpenDKIM wired into Postfix as a milter and ss confirming opendkim is listening on 127.0.0.1:8891" width="1920" height="513">
+                        <figcaption>OpenDKIM wired in as a milter, and ss confirming it is listening on 127.0.0.1:8891.</figcaption>
                     </figure>
 
                     <h3>DMARC</h3>
