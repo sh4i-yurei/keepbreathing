@@ -553,7 +553,8 @@ function initContactForm() {
     if (!form) return;
     var out = document.getElementById('cf-result');
     var button = form.querySelector('button[type="submit"]');
-    var widget = document.querySelector('altcha-widget');
+    if (!out || !button) return;                        // nothing to render into or submit with
+    var widget = form.querySelector('altcha-widget');   // scope to this form, not the whole page
     var sending = false;
 
     // Write a status message safely — textContent, never innerHTML.
@@ -568,7 +569,13 @@ function initContactForm() {
         var field = form.querySelector('input[name="altcha"]');
         if (field && field.value) return Promise.resolve(field.value);
         return new Promise(function (resolve, reject) {
-            if (!widget) { reject(new Error('altcha widget missing')); return; }
+            // Fail fast if the widget never upgraded: with no working verify()
+            // there is nothing to trigger, so waiting for a 'verified' event
+            // would just hang until the timeout. Reject now instead.
+            if (!widget || typeof widget.verify !== 'function') {
+                reject(new Error('altcha unavailable'));
+                return;
+            }
             var timer = setTimeout(function () {
                 widget.removeEventListener('verified', onVerified);
                 reject(new Error('altcha timeout'));
@@ -580,7 +587,7 @@ function initContactForm() {
                 resolve(f ? f.value : '');
             }
             widget.addEventListener('verified', onVerified);
-            if (typeof widget.verify === 'function') widget.verify();
+            widget.verify();
         });
     }
 
