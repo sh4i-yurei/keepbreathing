@@ -543,21 +543,86 @@ function initBlogAccordion() {
     }
 }
 // ------------------------------------------------------------
-// CONTACT FORM  (basic version — secured live in the presentation)
+// CONTACT FORM
+// Submits to the /api/contact backend with fetch and renders the result with
+// textContent (never innerHTML). The invisible ALTCHA widget solves a proof-of-
+// work on submit; its token + the honeypot field ride along in the request body.
 // ------------------------------------------------------------
 function initContactForm() {
     var form = document.getElementById('contact-form');
     if (!form) return;
     var out = document.getElementById('cf-result');
+    var button = form.querySelector('button[type="submit"]');
+    var widget = document.querySelector('altcha-widget');
+    var sending = false;
 
-    form.addEventListener('submit', function (e) {
+    // Write a status message safely — textContent, never innerHTML.
+    function setResult(message, ok) {
+        out.textContent = message;
+        out.className = message ? (ok ? 'cf-ok' : 'cf-error') : '';
+    }
+
+    // Resolve the ALTCHA token: if the widget hasn't produced one yet, trigger it
+    // and wait for its "verified" event (with a timeout so a submit never hangs).
+    function getAltchaToken() {
+        var field = form.querySelector('input[name="altcha"]');
+        if (field && field.value) return Promise.resolve(field.value);
+        return new Promise(function (resolve, reject) {
+            if (!widget) { reject(new Error('altcha widget missing')); return; }
+            var timer = setTimeout(function () {
+                widget.removeEventListener('verified', onVerified);
+                reject(new Error('altcha timeout'));
+            }, 15000);
+            function onVerified() {
+                clearTimeout(timer);
+                widget.removeEventListener('verified', onVerified);
+                var f = form.querySelector('input[name="altcha"]');
+                resolve(f ? f.value : '');
+            }
+            widget.addEventListener('verified', onVerified);
+            if (typeof widget.verify === 'function') widget.verify();
+        });
+    }
+
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        var name    = document.getElementById('cf-name').value;
-        var email   = document.getElementById('cf-email').value;
-        var message = document.getElementById('cf-message').value;
+        if (sending) return;
+        sending = true;
+        var originalLabel = button.textContent;
+        button.disabled = true;
+        button.textContent = 'sending…';
+        setResult('', true);
 
-        out.innerHTML = 'Thanks <strong>' + name + '</strong>, your message has been sent.';
-        form.reset();
+        try {
+            var token = await getAltchaToken();
+            var payload = {
+                name: document.getElementById('cf-name').value,
+                email: document.getElementById('cf-email').value,
+                message: document.getElementById('cf-message').value,
+                website: document.getElementById('cf-website').value, // honeypot
+                altcha: token
+            };
+            var res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            var data = await res.json().catch(function () { return {}; });
+            if (res.ok && data.ok) {
+                setResult('Thanks — your message has been sent.', true);
+                form.reset();
+            } else {
+                setResult(data.error || 'Something went wrong. Please try again.', false);
+            }
+        } catch (err) {
+            setResult('Could not send right now. Please try again.', false);
+        } finally {
+            // reset the widget so the next submit solves a fresh, single-use challenge
+            if (widget && typeof widget.reset === 'function') widget.reset();
+            sending = false;
+            button.disabled = false;
+            button.textContent = originalLabel;
+        }
     });
 }
 
