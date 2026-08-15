@@ -1,6 +1,14 @@
+# ============================================================
+# keepbreath.ing — site web stack (docker-compose.yml)
+# Author: Mark Thompson
+# ============================================================
+# Runs nginx (reverse proxy + static server) in a container on 80/443, joined to
+# the shared keepbreath-net so it can reach the contact-api container by name.
+# Ports overridable for staging via HTTP_PORT / HTTPS_PORT.
+
 services:
   web:
-    image: nginx:alpine
+    image: nginx:alpine@sha256:1d40e3eb3bf4f138de1d67193f2aa5309fcaf343eb5ffadbf5e9439de1eb1ebb
     container_name: keepbreath
     restart: unless-stopped
     ports:
@@ -10,3 +18,9 @@ services:
       - ../site:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
+    networks:
+      - keepbreath-net              # shared external net so nginx can reach contact-api by name
+
+networks:
+  keepbreath-net:
+    external: true                  # created once on the droplet: docker network create keepbreath-net

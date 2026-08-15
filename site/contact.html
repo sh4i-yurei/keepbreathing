@@ -14,6 +14,7 @@
     <link href="styles.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;700&display=swap"
     rel="stylesheet" />
+    <script src="js/altcha.js" type="module"></script>
     <script src="support.js" defer></script>
 </head>
 
@@ -121,11 +122,17 @@
                 <!-- Two-tone page title with a blinking caret, followed by the page subtitle. -->
 
                 <!-- --------------------------- Confirmation --------------------------- -->
-                <div id="cf-result"></div>
+                <div id="cf-result" role="status" aria-live="polite"></div>
                 <!-- support.js writes the success or error message here, above the form so it is seen. -->
 
                 <!-- --------------------------- Contact Form --------------------------- -->
                 <form id="contact-form" class="contact-form" novalidate>
+                    <!-- Honeypot: hidden from people and assistive tech; bots fill it and get silently dropped. -->
+                    <div class="hp-field" aria-hidden="true">
+                        <label for="cf-website">Leave this field blank</label>
+                        <input id="cf-website" name="website" type="text" tabindex="-1" autocomplete="off">
+                    </div>
+
                     <label for="cf-name">name</label>
                     <input id="cf-name" type="text" placeholder="your name">
 
@@ -134,6 +141,9 @@
 
                     <label for="cf-message">message</label>
                     <textarea id="cf-message" rows="6" placeholder="what's on your mind?"></textarea>
+
+                    <!-- Invisible ALTCHA proof-of-work: solves on submit; the hidden input it creates (name="altcha") rides along in the fetch. Hidden via CSS. -->
+                    <altcha-widget class="altcha-hidden" challengeurl="/api/challenge" auto="onsubmit" name="altcha" hidefooter></altcha-widget>
 
                     <button type="submit">send</button>
                 </form>
