@@ -143,7 +143,8 @@
                     <textarea id="cf-message" rows="6" placeholder="what's on your mind?"></textarea>
 
                     <!-- Invisible ALTCHA proof-of-work: solves on submit; the hidden input it creates (name="altcha") rides along in the fetch. Hidden via CSS. -->
-                    <altcha-widget class="altcha-hidden" challengeurl="/api/challenge" auto="onsubmit" name="altcha" hidefooter></altcha-widget>
+                    <!-- The endpoint goes in `challenge` (it accepts a URL). The older `challengeurl` name is silently ignored by this widget: it then fetches an empty URL, gets this HTML page back instead of JSON, and never produces a token — so the form appears to do nothing at all. -->
+                    <altcha-widget class="altcha-hidden" challenge="/api/challenge" auto="onsubmit" name="altcha" hidefooter></altcha-widget>
 
                     <button type="submit">send</button>
                 </form>
