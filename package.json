@@ -1,0 +1,12 @@
+{
+  "name": "keepbreathing-site",
+  "private": true,
+  "description": "Tests for the keepbreath.ing static site. The site itself has no build step; this exists only to run Playwright.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0"
+  }
+}

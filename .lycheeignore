@@ -1,0 +1,5 @@
+# Cloudflare rewrites email addresses into these at the edge; they do not exist
+# in source and cannot be followed.
+^/cdn-cgi/
+# Mail links are not fetchable.
+^mailto:

@@ -1,0 +1,69 @@
+# Deploys keepbreath.ing to the droplet after CI passes on main.
+#
+# The SSH key this uses is not a general key to the box. On the droplet it is
+# registered with `restrict` and a forced command, so it can run
+# /usr/local/bin/deploy-site and nothing else — no shell, no PTY, no port
+# forwarding. Verified by attempting `cat /etc/shadow` with it and getting the
+# deploy script instead.
+#
+# The secrets live in the `production` environment, whose branch policy allows
+# only `main`. A pull request cannot reach them.
+
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to droplet
+    runs-on: ubuntu-24.04
+    # Only deploy when CI actually passed. workflow_run fires on failure too.
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          github.event.workflow_run.conclusion == 'success' }}
+    environment:
+      name: production
+      url: https://keepbreath.ing
+    steps:
+      - name: Load the deploy key
+        env:
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s' "$KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # The remote command is ignored: sshd runs the forced command regardless.
+      # It is written out anyway so the intent is readable in the logs.
+      - name: Deploy
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+              "root@${HOST}" deploy-site
+
+      - name: Verify the site is serving
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://keepbreath.ing/)
+            echo "attempt $i: HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 5
+          done
+          echo "::error::site did not return 200 after deploy"
+          exit 1
