@@ -146,12 +146,12 @@
                     <p>The finished version has validation, bot protection, nginx rate limiting, a Redis queue, a Celery worker, retry and recovery logic, container hardening, CI checks, and an authenticated relay for outbound mail. It took about a week and a half of evenings and a long weekend to get there.</p>
                     <p>Fall semester started in the middle of the work, so most of it happened during downtime at work or late at night after schoolwork. I had just come off my last programming class and was rusty enough that I had to look up how to write a Python dictionary on the first evening.</p>
                     <p>In <a href="/blog.html#mail-identity">the last post</a>, I set up <code>contact@keepbreath.ing</code> as a two-way mail identity, with Gmail as the inbox behind it. That was the mail plumbing. This post is about connecting that plumbing to the form: taking it from a placeholder on a capstone project to a public-facing service that can accept a real submission and get it safely into my inbox.</p>
-                    <h3>The endpoint and its validation</h3>
+                    <h2>The endpoint and its validation</h2>
                     <p>The route is <code>POST /api/contact</code>. It takes three JSON fields (<code>name</code>, <code>email</code>, and <code>message</code>), validates them, runs the bot-defence checks, hands the message off to the mail path, and returns a small JSON response.</p>
                     <p>The validation itself is a straightforward function. It loops the three fields, rejects anything that isn't a string, strips whitespace, enforces length limits, and returns either the cleaned payload or a specific reason for the rejection. Two pieces inside it do the security work.</p>
                     <p>The email check is the first. My starting plan for it was a short regex, something like <code>\S+@\S+\.\S+</code>, and moving on with my day. Then I read the actual <a href="https://datatracker.ietf.org/doc/html/rfc5322" target="_blank" rel="noopener">RFC 5322</a> grammar for an address, which runs to more than 6000 characters. Any short pattern either lets garbage through or rejects addresses that are actually valid. So I dropped the regex and used the maintained <a href="https://pypi.org/project/email-validator/" target="_blank" rel="noopener">email-validator</a> library instead. It runs the syntax check, enforces proper length caps, rejects domains without a dot, and hands back a normalized address. I turned off its DNS-deliverability check to keep requests fast, and stored whatever normalized form the library gave back.</p>
                     <p>The other is a check for carriage-return and newline characters in the name field. The name lands in the email's Subject header, and email headers are separated by newlines. A name containing a newline can inject a second header, and a hidden <code>Bcc:</code> line on that second header would turn one form submission into a spam blast. Python's <code>EmailMessage</code> has built-in protection against this, but the Python bug tracker has documented cases where it can be bypassed at the edges. So I reject <code>\r</code> and <code>\n</code> in the name field before any of that code even runs. Belt and suspenders.</p>
-                    <h3>Bot defence</h3>
+                    <h2>Bot defence</h2>
                     <p>Bot defence ended up being three layers, but the starting plan was one. A honeypot is a hidden form field a human never fills in because they never see it. A naive bot that just POSTs every field it finds will fill it in every time, and the API drops those submissions on the floor. About ten lines of code total. Then I read what bots actually do now, and realized a bare honeypot catches only the dumbest of them. It's the cheapest layer to build and the least sufficient on its own.</p>
                     <p>So mine has two more layers behind it: a cryptographic challenge, and a rate limit on the reverse proxy. Each catches a different kind of traffic, and any one alone is weaker than the three combined.</p>
                     <p>The middle layer took more thought. I looked at <a href="https://www.cloudflare.com/products/turnstile/" target="_blank" rel="noopener">Cloudflare Turnstile</a> first. It is free, privacy-friendly, and I was already using Cloudflare. For a site that only needed a CAPTCHA, it probably would have been the fastest answer.</p>
@@ -161,7 +161,7 @@
                     <p>Because ALTCHA is self-hosted from my own domain, the Content-Security-Policy stays strict. I first picked ALTCHA's strict "external" build, thinking it would keep the CSP totally untouched. Then I read further and found that build needs a JavaScript bundler. Webpack, Vite, one of those. My site is hand-coded HTML with no build toolchain, and bolting webpack onto it to dodge a single CSP directive wasn't a good trade. I switched to the single self-hosted bundle and added one line to the policy: <code>worker-src 'self' blob:</code>. That lets my own JavaScript run inside a Web Worker, which is what does the puzzle-solving in the background, without opening the door to anything else.</p>
                     <p>I turned up a real CVE in the ALTCHA library while researching this: <a href="https://github.com/advisories/GHSA-6gvq-jcmp-8959" target="_blank" rel="noopener">CVE-2025-68113</a>, a challenge-splicing and replay flaw fixed in a recent version. I pinned to the fixed version. The attack pattern behind that CVE (an attacker solving one challenge and reusing the token for a burst of submissions) is also why the code keeps a single-use registry. Every accepted challenge is recorded in a small SQLite database with a <code>UNIQUE</code> constraint. Two workers can't accidentally both accept the same replayed token, because the second write fails.</p>
                     <p>The third layer, the rate limit, lives out in nginx and caps requests per client at five per minute with a burst of three. Client identity is keyed on Cloudflare's <code>CF-Connecting-IP</code> header, since all traffic reaches the origin through Cloudflare and <code>$remote_addr</code> would otherwise be a Cloudflare edge IP shared across every visitor.</p>
-                    <h3>Container hardening</h3>
+                    <h2>Container hardening</h2>
                     <p>With the app running locally, I put it in a container. The plan for this site is a set of services on separate droplets talking over a shared internal network, and the contact API is the first of them.</p>
                     <p>The Dockerfile itself is nothing exotic. It starts from a small Python base to keep the image small, and dependencies install in their own layer so a change to <code>app.py</code> doesn't trigger a full reinstall on every build.</p>
                     <p>The app runs as a non-root user called <code>appuser</code>, so a break-in inside the container doesn't hand out root, and a <code>HEALTHCHECK</code> line hits a small <code>/health</code> route with <code>urllib</code> so Docker can tell whether the app is answering, not just whether the process is running.</p>
@@ -183,7 +183,7 @@
                     <p>The base-image swap still needed verification. Alpine keeps its CA-certificate trust store in a different location from Debian, and the application's outbound mail path depends on TLS certificate validation. A clean vulnerability report would not help if the container could no longer verify the mail server it needed to reach. I confirmed that all 119 CA certificates were present in the Alpine trust store, then sent mail through the normal path and confirmed TLS verification still passed.</p>
                     <p>That was one of the biggest wins in the project. I started by looking for a way to patch a noisy scan, then realized the better answer was to stop shipping software the application did not need.</p>
                     <p>By the time the clean scan came back, I was ready to be done for the day. I made dinner and had hot green tea with honey. The heat index outside was 115 degrees, and I had slept about four hours the night before.</p>
-                    <h3>The security audit</h3>
+                    <h2>The security audit</h2>
                     <p>Once I had the build working, I had to stop treating it like a folder of code on my computer and start treating it like a project I would have to maintain. I put everything under Git, pushed it to GitHub, and started laying the groundwork for CI/CD. The repository became the place I could deploy from, recover from, and use to track why each change happened.</p>
                     <p>I like having an outside set of eyes on pull requests, so I use GitHub Copilot for reviews. When I am deep in a build, I can get used to my own assumptions and stop noticing awkward parts of the design. A review gives me a reason to go back and look at them.</p>
                     <p>The problem was that I had just created the repository. There was no pull-request history yet, no established review loop, and no single previous change to inspect. Before I started building a pipeline around future pull requests, I wanted one full pass over the codebase I already had.</p>
@@ -212,7 +212,7 @@
                         <img src="images/blog/contact-form/08-audit-issues-all-closed.png" alt="A GitHub issue list showing seven audit issues, each one closed and each linked to a pull request" width="1480" height="797">
                         <figcaption>The audit ledger after every original finding had either been resolved or turned into a documented follow-up.</figcaption>
                     </figure>
-                    <h3>Taking the mail send off the request path</h3>
+                    <h2>Taking the mail send off the request path</h2>
                     <p>The biggest architectural change was decoupling the mail send from the HTTP request. In the first version the visitor's browser sat blocked on the <code>POST</code> while my server dialed the mail server, negotiated TLS, authenticated, and handed the message off. If the mail server was slow, the visitor's page was slow. If it was down, the request eventually failed and the message was gone.</p>
                     <p>So I moved the send off the request path. The API accepts the message, puts it on a queue, returns <code>202 Accepted</code> immediately, and hands the actual send to a background worker. I built that with <a href="https://docs.celeryq.dev/" target="_blank" rel="noopener">Celery</a> (Python's most established background-job library) and <a href="https://redis.io/" target="_blank" rel="noopener">Redis</a> as the message broker between the web process and the worker. The Flask app validates, runs the honeypot and ALTCHA checks, and enqueues. A separate worker container reads the queue, builds the email, and sends it. Mail credentials live only in the worker's environment now, so the web process can't leak them even if it's compromised.</p>
                     <p>The <a href="https://sre.google/sre-book/addressing-cascading-failures/" target="_blank" rel="noopener">textbook retry policy</a> for outgoing mail says: retry transient failures (dropped connections, temporary server errors) with exponential backoff and jitter, and never retry <a href="https://reviewmyemails.com/emailalmanac/bounces-and-errors/fundamentals-of-bounces/what-is-transient-delivery-failure" target="_blank" rel="noopener">permanent failures</a> (auth errors, invalid addresses, bounces from the recipient's server). The reason not to retry permanents is that in normal mail, a permanent failure means a bad recipient address. Bombing a mail server with mail it's already refused hurts your sending reputation, and there's no point anyway. So my first design had a "dead letter" bucket for permanent failures: log the failure, drop the message, move on.</p>
@@ -225,7 +225,7 @@
                         <img src="images/blog/contact-form/01-pr10-workflow-and-review.png" alt="GitHub pull request number 10, titled Log per-request and mail-send timing, showing its description of the single request_completed log line and the send_duration_seconds timing fields" width="1920" height="883">
                         <figcaption>The pull request that added per-request timing logs. In production, those numbers show what a slow mail send actually costs. During testing, one submission held a worker for 8.5 seconds, and that cost is now visible in the log stream instead of invisible.</figcaption>
                     </figure>
-                    <h3>Three walls between the form and Gmail</h3>
+                    <h2>Three walls between the form and Gmail</h2>
                     <p>The deploy itself went in stages. Bring up the shared docker network on the droplet. Clone the API repo and drop in the environment file with the secrets. <code>docker compose up -d --build</code>. Validate the new nginx config in a throwaway container before touching the live one. Purge the Cloudflare cache. The app came up healthy, the network wiring resolved, a full submission through Cloudflare returned <code>202 Accepted</code>, and the rate limit fired at exactly the configured five-per-minute with a burst of three. Everything came up green.</p>
                     <p>The submissions were being accepted. The mail wasn't leaving the box. There were three walls between the app and my Gmail, and none of them were in the tutorials I'd read.</p>
                     <p><strong>Wall 1: the mail server tried to deliver to itself.</strong> Postfix bounced the first send with <code>mail for keepbreath.ing loops back to myself</code>. The cause was one line in <code>/etc/hosts</code>: <code>127.0.1.1 keepbreath.ing keepbreath</code>. When Postfix asked DNS where to deliver mail for <code>keepbreath.ing</code>, that hosts file entry answered first, before Postfix ever hit an MX lookup. So Postfix delivered to its own IP, saw the domain wasn't in its list of local domains, and bounced.</p>
@@ -261,7 +261,7 @@
                         <li>Brevo delivers to Cloudflare Email Routing.</li>
                         <li>Cloudflare drops it in my Gmail inbox.</li>
                     </ol>
-                    <h3>The one-word bug</h3>
+                    <h2>The one-word bug</h2>
                     <p>I finished the deploy, went to bed, and took a couple of days away from the project to focus on schoolwork. When I came back, I sat down to use my own contact form for the first time and had an uncomfortable question: had I ever loaded the deployed page in a browser, filled out the form, and clicked Send?</p>
                     <p>The honest answer was no. I had tested the API directly by solving ALTCHA challenges in Python and posting the payload with <code>curl</code>. That proved the backend path could accept a valid submission. It did not prove that the browser widget could fetch a challenge, solve it, and hand a token to the form.</p>
                     <p>So I opened the page, filled it out, and clicked Send. Nothing happened. The button never changed to "sending…," no success message appeared, and no error appeared either. The form just sat there.</p>
@@ -275,7 +275,7 @@ Expected application/json, received text/html.</code></pre>
                         <img src="images/blog/contact-form/06-altcha-console-error-form-dead.png" alt="The contact page open beside the browser developer tools, with a console error reading that ALTCHA verification failed because the server responded with content-type text/html where application/json was expected" width="1920" height="794">
                         <figcaption>The browser-console output from the broken form. The CSP and analytics warnings were unrelated; the ALTCHA content-type error was the useful clue.</figcaption>
                     </figure>
-                    <p>That error gave me something concrete to check. I compared the deployed <code>&lt;altcha-widget&gt;</code> markup with the <a href="https://altcha.org/docs/v2/website-integration/" target="_blank" rel="noopener">ALTCHA integration documentation</a> for the version I had pinned. The version I was using expected the challenge endpoint in the <code>challenge</code> attribute. My page still used <code>challengeurl</code>, an attribute from a different integration pattern or version. The widget did not read <code>challengeurl</code>, so it fell back to an empty endpoint.</p>
+                    <p>That error gave me something concrete to check. I compared the deployed <code>&lt;altcha-widget&gt;</code> markup with the <a href="https://altcha.org/docs/website-integration/" target="_blank" rel="noopener">ALTCHA integration documentation</a> for the version I had pinned. The version I was using expected the challenge endpoint in the <code>challenge</code> attribute. My page still used <code>challengeurl</code>, an attribute from a different integration pattern or version. The widget did not read <code>challengeurl</code>, so it fell back to an empty endpoint.</p>
                     <p>My HTML had this:</p>
                     <pre><code>&lt;altcha-widget challengeurl="/api/challenge"&gt;</code></pre>
                     <p>It needed to be this:</p>
@@ -293,7 +293,7 @@ Expected application/json, received text/html.</code></pre>
                         <img src="images/blog/contact-form/04-form-success-live.png" alt="The sendmail page on keepbreath.ing with a green confirmation banner above the cleared name, email, and message fields" width="1920" height="883">
                         <figcaption>The form completing a real end-to-end submission after the fix.</figcaption>
                     </figure>
-                    <h3>Where things stand</h3>
+                    <h2>Where things stand</h2>
                     <p>The form is live. Real submissions reach my inbox. The capstone placeholder is a working form now, and the cross-site scripting bug that used to live on the same page is gone with it. The mail path relays outbound through Brevo on port <code>2525</code> with the domain authenticated and DKIM aligned. Every gate on the API repo is green, every audit issue is closed, branch protection is on, and the rule applies to me.</p>
                     <p>Two follow-ups are on the list, but neither blocks anything. The visitor's message currently sits in Redis in plaintext for the brief window between when the API enqueues it and when the worker sends it, and I want to encrypt it at rest even for that window. And I want a test that specifically asserts an expired ALTCHA token gets rejected, to nail down that expiry semantic in code instead of only in behaviour.</p>
                     <p>The next post is the droplet split I mentioned two posts back. The current box is on an end-of-life Ubuntu release and needs to be replaced. Since everything on it is now in git, that migration should be nearly boring.</p>
@@ -314,11 +314,11 @@ Expected application/json, received text/html.</code></pre>
                     <p>Free-tier services do the whole two-way-address thing for you. I self-hosted it instead. It's cheaper long-term, I get to set it up the way I want, and I keep control over my data. I also just wanted to know how the machine works. Security has been a priority for me from the beginning of this site, so building the mail path myself, where I could see what was happening at each step, felt like the right call.</p>
                     <p>This post is about the mail identity. The next one, once I've wired the endpoint in, is about the form.</p>
 
-                    <h3>The address and the mail server</h3>
+                    <h2>The address and the mail server</h2>
                     <p>The public-facing address is contact@keepbreath.ing. The mail server behind it lives at mail.keepbreath.ing, on its own A record with its own reverse DNS. Keeping the mail infrastructure on a subdomain keeps its reputation scoped to that subdomain instead of spilling onto the apex.</p>
                     <p>The address itself is really a set of DNS records. As long as those records stay valid, whatever server is answering underneath is replaceable. I renamed the droplet halfway through this build (more on that in Step 3), and the address kept working straight through the change because the address was in DNS and not on the box.</p>
 
-                    <h3>Step 1: receiving with Cloudflare Email Routing</h3>
+                    <h2>Step 1: receiving with Cloudflare Email Routing</h2>
                     <p>I set up the inbound side using <a href="https://developers.cloudflare.com/email-routing/" target="_blank" rel="noopener">Cloudflare Email Routing</a>, which is free and doesn't need a server of its own. I added a rule that forwards contact@keepbreath.ing into my Gmail. That put a working inbox behind the public address, and it meant anyone writing to contact@ would never see the Gmail address underneath.</p>
                     <figure>
                         <img src="images/blog/mail-identity/cf-email-routing-rule.png" alt="Cloudflare Email Routing showing a custom-address rule that forwards contact@keepbreath.ing to a Gmail inbox" width="1920" height="875">
@@ -334,13 +334,13 @@ Expected application/json, received text/html.</code></pre>
                     </figure>
                     <p>Cloudflare is doing exactly what most mail receivers on the internet do with unauthenticated mail. Step 3 is where I built the authentication so my own sending would pass those same checks.</p>
 
-                    <h3>Step 2: sending my own mail with Postfix</h3>
+                    <h2>Step 2: sending my own mail with Postfix</h2>
                     <p>Free Gmail can't send from a custom domain through Google's own servers, because that's a paid Workspace feature. What free Gmail can do is log into an outside SMTP server, hand off a message, and let that server handle delivery to the recipient. So to reply as contact@, I needed my own SMTP server for Gmail to log into.</p>
                     <p>I chose <a href="https://www.postfix.org/" target="_blank" rel="noopener">Postfix</a>. It's well-documented and most tutorials use it, which made it a sensible default for what I was doing. For the Postfix + Dovecot structure I leaned heavily on Christoph Haas's <a href="https://workaround.org/" target="_blank" rel="noopener">ISPmail guide</a>, which is the most thorough self-hosted mail tutorial I found and the one many other guides cite as their starting point. Most of this configuration happened at the terminal rather than in a UI. I still struggle with wrapping my head around a lot of Linux commands, but I get overwhelmed hunting through nested UIs faster than I do sitting with a config file, so the more I do at the terminal the more comfortable I get.</p>
                     <p>Postfix on this box does two related jobs. It runs a submission service on port 587 that Gmail authenticates to and hands outgoing mail to, and it runs a relay on port 25 that delivers those messages onward to the recipient's mail server. It's the same daemon running as two services.</p>
                     <p>I built the whole thing up in layers, starting with identity, then TLS, then authentication, then the submission port itself, and finally opening the firewall. Between most of these steps I got up, walked around, and came back to it. My ADHD means I work in short focused bursts with breaks in between, and a config file this dense is exactly the kind of thing that starts to blur if I stare at it too long.</p>
 
-                    <h3>Postfix identity</h3>
+                    <h2>Postfix identity</h2>
                     <p>There were three settings I had to change from the installer defaults.</p>
                     <p>The first was <code>myhostname = mail.keepbreath.ing</code>, which is what Postfix announces when it greets another server. It has to match the mail DNS record, the certificate's Common Name, and the reverse DNS. The Debian installer had set it to the bare <code>keepbreath.ing</code>, which would have failed every one of those matches, so I corrected it.</p>
                     <p>The second was <code>mydestination = $myhostname, localhost</code>, which is the list of domains this server considers local. I deliberately kept the parent domain off the list. Cloudflare is the MX for keepbreath.ing, so if this box also claimed the domain it would try to keep mail for @keepbreath.ing locally, and that would break the inbound routing from Step 1. The installer default included both the parent domain and a <code>localhost.ing</code> artifact from the <code>.ing</code> TLD, both of which I removed. The <code>.ing</code> artifact caught me by surprise the first time I read the config. Most defaults assume a .com domain, and there are a few places in the mail stack where a short TLD makes the automatic naming behave oddly.</p>
@@ -350,7 +350,7 @@ Expected application/json, received text/html.</code></pre>
                         <figcaption>The mail subdomain as a DNS-only (grey-cloud) A record, so it resolves straight to the droplet. Origin IPs are blanked out.</figcaption>
                     </figure>
 
-                    <h3>TLS</h3>
+                    <h2>TLS</h2>
                     <p>No password is going over the wire in cleartext, so TLS has to work before I can turn on authentication.</p>
                     <p>I pointed Postfix at a <a href="https://letsencrypt.org/" target="_blank" rel="noopener">Let's Encrypt</a> certificate for mail.keepbreath.ing, obtained via DNS-01 through Cloudflare because I didn't want to expose an HTTP challenge endpoint on the box. The certificate's Common Name is mail.keepbreath.ing, which matches <code>myhostname</code>. A Cloudflare Origin Certificate wouldn't work in this position because only Cloudflare trusts those, and a self-signed certificate would be refused by mail clients.</p>
                     <p>For port 25 I set <code>smtpd_tls_security_level = may</code>, which is opportunistic encryption. It uses TLS if the sender's server supports it and accepts plaintext otherwise. That's the right posture on port 25, because you can't force every mail server on the internet to have TLS. Port 587 requires TLS, and that setting comes a few paragraphs down.</p>
@@ -360,7 +360,7 @@ Expected application/json, received text/html.</code></pre>
                     </figure>
                     <p>Somewhere around the end of the TLS work I hit a wall and needed a real break. I stepped away from the terminal, grilled myself some bratwurst and rice pilaf, and let my brain digest what I'd wired up before coming back to authentication.</p>
 
-                    <h3>SASL through Dovecot</h3>
+                    <h2>SASL through Dovecot</h2>
                     <p>Postfix doesn't check submission passwords itself. It hands the check to a SASL provider. I used <a href="https://www.dovecot.org/" target="_blank" rel="noopener">Dovecot</a> as that provider, with no mailboxes and no IMAP running. The inbox lives in Gmail via the Cloudflare routing from Step 1.</p>
                     <p>The submission credential for contact@keepbreath.ing sits in <code>/etc/dovecot/passwd</code> as a SHA512-CRYPT hash. The plaintext is only in my offline password manager, because I need it once more in Step 4. Reading the file on the server exposes nothing usable to an attacker.</p>
                     <p>I disabled Dovecot's default PAM passdb explicitly, because a mail submission credential shouldn't double as a way to log into a Linux account.</p>
@@ -372,7 +372,7 @@ smtpd_sasl_path = private/auth</code></pre>
 auth succeeded</code></pre>
                     <p>Seeing that <code>auth succeeded</code> line was the first real sign the plumbing was actually connected. Everything before it had been configuration on faith.</p>
 
-                    <h3>The submission service on port 587</h3>
+                    <h2>The submission service on port 587</h2>
                     <p>Port 25 accepts inbound mail from other servers. Port 587 is a separate service for authenticated outbound clients. Postfix runs both from the same daemon using per-port overrides in master.cf.</p>
                     <p>The 587 block overrides five settings from the defaults. It requires TLS, enables SMTP AUTH, adds the two open-relay guards, and gives the service its own log label so I can grep for it:</p>
                     <pre><code>submission inet n       -       y       -       -       smtpd
@@ -395,17 +395,17 @@ auth succeeded</code></pre>
                         <figcaption>swaks proves it: an unauthenticated relay is refused with 554, AUTH shows up only after STARTTLS, and the real Let's Encrypt cert is served over TLS 1.3.</figcaption>
                     </figure>
 
-                    <h3>Opening 587 in the firewall</h3>
+                    <h2>Opening 587 in the firewall</h2>
                     <p>Once the open-relay test passed, I added one inbound rule to the <a href="https://docs.digitalocean.com/products/networking/firewalls/" target="_blank" rel="noopener">DigitalOcean Cloud Firewall</a> for <code>tcp/587</code> from <code>0.0.0.0/0</code> and <code>::/0</code>. I added it via the DigitalOcean API using curl from my laptop. My DO API token lives in the laptop's password manager and has never been on the droplet. That token can create and destroy anything in the account, so there's no reason for it to sit on a server.</p>
                     <p>I considered restricting 587 to Google's IP ranges instead of leaving it open. Gmail's send-as relay uses a broad and shifting set of Google addresses, and keeping an allowlist current would be a maintenance chore. So I left the port open to everyone, and the port's protection is TLS, SASL authentication, and the open-relay guards. The consequence of leaving it open is that internet bots will try to brute-force the login. A long random password makes guessing it impractical, but I'm not going to pretend a compromised credential is harmless: an authenticated client is allowed to relay, so a stolen or guessed password would be a real spam channel. That's exactly why the password is long and random, and why fail2ban to auto-ban repeated attempts and log monitoring are on my follow-up list.</p>
                     <p>I verified the port was reachable from an outside machine:</p>
                     <pre><code>$ nc mail.keepbreath.ing 587
 220 mail.keepbreath.ing ESMTP Postfix</code></pre>
 
-                    <h3>Step 3: publishing SPF, DKIM, and DMARC</h3>
+                    <h2>Step 3: publishing SPF, DKIM, and DMARC</h2>
                     <p>The next thing I set up was the DNS records that mail receivers use to decide whether to trust mail from my domain. If those records aren't right, no amount of well-configured Postfix helps. There are three of them, plus a reverse DNS record on the droplet's IP.</p>
 
-                    <h3>SPF</h3>
+                    <h2>SPF</h2>
                     <p>SPF is a DNS TXT record that names which servers are authorized to send mail for your domain. Cloudflare Email Routing had already published one for me:</p>
                     <pre><code>v=spf1 include:_spf.mx.cloudflare.net ~all</code></pre>
                     <p>That authorized Cloudflare's servers and nothing else. My droplet, now also a sender, wasn't on the list. A receiver checking SPF on mail from my IP would see the IP wasn't authorized to send as keepbreath.ing.</p>
@@ -413,7 +413,7 @@ auth succeeded</code></pre>
                     <pre><code>v=spf1 ip4:YOUR.DROPLET.IP include:_spf.mx.cloudflare.net ~all</code></pre>
                     <p>I kept <code>~all</code> (softfail) rather than moving to <code>-all</code> (hardfail) for now. Softfail tells receivers to treat unauthorized senders as suspicious, and hardfail tells them to reject outright. I want to watch my own mail behave cleanly for a while before asking receivers to hardfail on anything.</p>
 
-                    <h3>DKIM</h3>
+                    <h2>DKIM</h2>
                     <p>SPF checks the sending IP. DKIM goes further. It attaches a cryptographic signature to every outgoing message using a private key on the sending server, and it publishes the matching public key in DNS. Receivers use the public key to verify that a message really came from the domain and hasn't been altered in transit. Unlike SPF, DKIM signatures also survive forwarding.</p>
                     <p>I installed <a href="http://www.opendkim.org/" target="_blank" rel="noopener">OpenDKIM</a> as the signing daemon, generated a 2048-bit RSA key pair, and published the public key at <code>mail._domainkey.keepbreath.ing</code>. For the OpenDKIM configuration and its integration with Postfix I mostly worked from <a href="https://www.linuxbabe.com/mail-server/spf-dkim-postfix-debian-server" target="_blank" rel="noopener">LinuxBabe's mail server tutorials</a>, which walk through the signing setup and the follow-on OpenDMARC piece step by step. My selector is <code>mail</code>. Cloudflare's existing DKIM record uses a different selector (<code>cf2024-1</code>), so both records live in DNS without conflicting.</p>
                     <p>Two OpenDKIM defaults were wrong on this system, and I caught them from reading through the config carefully before touching anything else. The default socket is a Unix socket at <code>/run/opendkim/opendkim.sock</code>, which chrooted Postfix cannot reach. I changed it to <code>inet:8891@localhost</code> so Postfix could talk to it regardless of chroot, and this was the same problem I'd already run into with Dovecot. The second one is that <code>/etc/default/opendkim</code> is a legacy file that systemd ignores on modern distributions, which means all settings have to be in <code>/etc/opendkim.conf</code> instead. Catching both of these before starting the service saved me the debugging time I would otherwise have spent on them.</p>
@@ -428,13 +428,13 @@ milter_default_action = accept</code></pre>
                         <figcaption>OpenDKIM wired in as a milter, and ss confirming it is listening on 127.0.0.1:8891.</figcaption>
                     </figure>
 
-                    <h3>DMARC</h3>
+                    <h2>DMARC</h2>
                     <p>DMARC sits on top of SPF and DKIM. It does two things at once. It tells receivers what to do with mail from your domain that fails both checks, and it asks receivers to send back reports about who is sending mail as your domain.</p>
                     <p>I published a minimal DMARC record at <code>_dmarc.keepbreath.ing</code>:</p>
                     <pre><code>v=DMARC1; p=none; rua=mailto:contact@keepbreath.ing</code></pre>
                     <p><code>p=none</code> is monitor mode. It doesn't ask receivers to do anything to failing mail; it just asks them to send reports. I want to see the reports and confirm my own mail is passing both checks before tightening the policy to quarantine or reject. The reports come back to contact@, which the inbound routing from Step 1 forwards into Gmail.</p>
 
-                    <h3>The reverse DNS problem</h3>
+                    <h2>The reverse DNS problem</h2>
                     <p>I ran a test message through <a href="https://www.mail-tester.com/" target="_blank" rel="noopener">mail-tester</a>, which grades outgoing mail against the standard authentication checks. It came back at 8.9 out of 10. The only real ding was <code>RDNS_NONE</code>.</p>
                     <figure>
                         <img src="images/blog/mail-identity/mail-tester-rdns-before.png" alt="mail-tester result flagging that reverse DNS does not match the sending domain, with the tested HELO and rDNS values" width="1920" height="875">
@@ -452,7 +452,7 @@ milter_default_action = accept</code></pre>
                     </figure>
                     <p>Renaming the droplet to mail.keepbreath.ing fixed the reverse DNS problem, but I wasn't happy leaving the whole box named after its mail role when the same droplet still hosts the site itself. That gave me an obvious next project: spin up a second droplet, migrate the site to it, and let the original box stay dedicated to the mail server and (eventually) the Flask backend. DO droplets are cheap enough that I can afford to run a second one, and the split gives me a clean separation between the public web front and the services running behind it. Really I'm treating this whole site as a long-running platform for hands-on learning across web development, hosting, and the various ways servers and clients talk to each other. The plan is to keep building it out over time, adding functionality that gives me an excuse to learn something new each time. Splitting the site off from the mail server is the first of those experiments.</p>
 
-                    <h3>Step 4: telling Gmail to use it</h3>
+                    <h2>Step 4: telling Gmail to use it</h2>
                     <p>In Gmail's settings I went to Accounts and Import, then Send mail as, then Add another email address. I entered contact@keepbreath.ing, gave <code>mail.keepbreath.ing:587</code> as the SMTP server, checked the TLS box, and pasted the SASL credential from the offline password manager. Gmail sent a verification link to contact@, which forwarded through Cloudflare into the same Gmail inbox. I clicked through it.</p>
                     <figure>
                         <img src="images/blog/mail-identity/gmail-sendas-verified.png" alt="Gmail confirmation that it located the mail server, verified the credentials, and sent a confirmation link to contact@keepbreath.ing" width="1920" height="315">
@@ -461,7 +461,7 @@ milter_default_action = accept</code></pre>
                     <p>Now contact@keepbreath.ing is a selectable identity in Gmail's From dropdown. Anything I send from that identity goes out through my own SMTP server, gets DKIM-signed on the way, and arrives at the recipient as if it had come directly from contact@keepbreath.ing. My Gmail address isn't in any header the recipient can see.</p>
                     <p>I sent one final test from Gmail-as-contact@ to mail-tester, and it came back at 10 out of 10 on the actual path I'll be using in practice.</p>
 
-                    <h3>What Gmail did with the first messages</h3>
+                    <h2>What Gmail did with the first messages</h2>
                     <p>The very first test message I sent to my own Gmail account (before the PTR fix) went straight to spam. This wasn't a surprise. SPF, DKIM, and DMARC all passed in the Show Original view, but a brand-new sending IP from a random droplet doesn't get inbox placement, and I knew that going in. Reputation takes time to build.</p>
                     <p>What I was really watching for was the retest after the PTR fix. When I sent that one, Gmail briefly held it with a 4xx "try again later" response before accepting it a few minutes later. That's greylisting: the receiver refuses the first delivery attempt with a temporary failure code and waits to see whether the sender comes back. Postfix's default behavior is to retry deferred deliveries on a backoff schedule, so my server tried again a few minutes later and Gmail accepted it. The message landed in the inbox with all three authentication checks green in Show Original, and that was the moment I knew the finish line was in view. Everything else was going to be time and consistent sending.</p>
                     <figure>
@@ -471,7 +471,7 @@ milter_default_action = accept</code></pre>
                     <p>The greylisting isn't a failure. It's a normal check on a first-time sender, and my server responding to it correctly is one small piece of the reputation Gmail is watching for.</p>
                     <p>I also noticed something about outbound port 25 on new DigitalOcean droplets. Community forums and many tutorials will tell you DigitalOcean blocks outbound 25 on new droplets by default. Mine wasn't blocked, but my droplet has been up for about a year and a half, and DigitalOcean lifts that restriction on accounts and droplets they've had time to observe behaving cleanly. If your droplet is new, you'll probably need to request the block be lifted or wait until your account has aged in.</p>
 
-                    <h3>Next up</h3>
+                    <h2>Next up</h2>
                     <p>The next post is about the actual contact form: a Flask endpoint, server-side validation, a honeypot, and a rate limit, all wired into the mail identity from this post. Once that ships, submissions from the site's contact page will arrive in my Gmail through the pipeline described here, and any reply I send will go out as contact@keepbreath.ing. After that, the droplet split I mentioned in Step 3 is next on the list.</p>
                 </div>
             </article>
@@ -486,11 +486,11 @@ milter_default_action = accept</code></pre>
                 <div class="post-full">
                     <p>This site used to be <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> behind <a href="https://caddyserver.com/" target="_blank" rel="noopener">Caddy</a> on a DigitalOcean droplet. Now it's hand-coded HTML behind <a href="https://nginx.org/" target="_blank" rel="noopener">nginx</a> on the same droplet.</p>
 
-                    <h3>Why nginx, when Caddy was already sitting right there</h3>
+                    <h2>Why nginx, when Caddy was already sitting right there</h2>
                     <p>Caddy is easier. It does automatic HTTPS, and I had a half-built Caddy setup on the box already. I went with nginx because it's the tool used everywhere in networking and security work, and I want to know it.</p>
                     <p>The nginx config itself was about two hours of work. The pieces around it took longer: TLS through Cloudflare, locking the origin down, and staging tests between environments.</p>
 
-                    <h3>Building it in layers</h3>
+                    <h2>Building it in layers</h2>
                     <p>The first version was plain HTTP on port 80. Events block, http block, one server block. Inside the server block: <code>include mime.types</code> so browsers got the right Content-Type, and <code>try_files $uri $uri/ =404</code> to fall through cleanly:</p>
                     <pre><code>events {}
 
@@ -519,14 +519,14 @@ http {
                         <figcaption>Layer one, proven locally under podman: every page a 200 in the access log.</figcaption>
                     </figure>
 
-                    <h3>Security headers, and the Google Fonts trap</h3>
+                    <h2>Security headers, and the Google Fonts trap</h2>
                     <p>Once the site was serving, I added the security headers, all with the <code>always</code> flag so they get sent on every response including errors. The set was <code>X-Content-Type-Options: nosniff</code>, <code>X-Frame-Options</code>, <code>Referrer-Policy</code>, <code>Permissions-Policy</code> (set to disable camera, mic, and geolocation), and <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy" target="_blank" rel="noopener"><code>Content-Security-Policy</code></a>.</p>
                     <p>For the CSP I built the policy from what the site loads, not a generic template. That meant reading my own source: no inline scripts, no inline styles, no inline event handlers. That let me write a strict policy with no <code>unsafe-inline</code> in it anywhere. Ten minutes here. On any template-generated site it would have taken much longer.</p>
                     <p>One trap in setting this up: Google Fonts loads from two different hosts. The stylesheet comes from <code>fonts.googleapis.com</code> and the font files come from <code>fonts.gstatic.com</code>. If you allow only the first, the CSS loads and the fonts silently fail. The browser gives you a CSP violation that reads like the font files are being blocked, because they are, because you told it to. You need <code>style-src</code> to allow googleapis and <code>font-src</code> to allow gstatic. The final directive:</p>
                     <pre><code>add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://api.github.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'" always;</code></pre>
                     <p>I left HSTS off at this stage. Forcing HTTPS from a header before the site can serve it locks the browser into a broken state. HSTS only makes sense once TLS is proven.</p>
 
-                    <h3>TLS behind Cloudflare</h3>
+                    <h2>TLS behind Cloudflare</h2>
                     <p>Cloudflare fronts this site, so the TLS story has two legs, and the second one is easy to misconfigure. The connection from the browser to Cloudflare needs a public certificate, which Cloudflare handles. The connection from Cloudflare to my origin server needs a certificate too, but it can be one that only Cloudflare trusts. That is what a <a href="https://developers.cloudflare.com/ssl/origin-configuration/origin-ca/" target="_blank" rel="noopener">Cloudflare Origin Certificate</a> is: valid for fifteen years, trusted only by Cloudflare, useless to any other client. Cloudflare is the only thing that should be reaching my origin anyway.</p>
                     <p>I generated the origin cert from the Cloudflare dashboard, covering the apex and the wildcard. Put the cert and key in a certs directory on the droplet, <code>chmod 600</code> on the key, added the certs directory to <code>.gitignore</code> so the private key can't be committed by accident. Kept an offline backup of both files as their own separate files. The TLS config was two server blocks. Port 80 became a bare 301 up to HTTPS. Port 443 did the actual serving with http2, TLS 1.2 and 1.3, the Cloudflare origin cert, and HSTS at a deliberately short <code>max-age=300</code> for the rollout:</p>
                     <pre><code>server {
@@ -554,7 +554,7 @@ server {
                         <figcaption>Staging test on the droplet: 8443 answers HTTP/2 200 with the full header stack, 8090 redirects with a 301.</figcaption>
                     </figure>
 
-                    <h3>The cutover, and locking the origin down</h3>
+                    <h2>The cutover, and locking the origin down</h2>
                     <p>The cutover itself was uneventful, which is what staging is for. Stopped the Hugo container so it released ports 80 and 443, switched the nginx compose file to publish on those ports, brought nginx up. Flipped Cloudflare's SSL mode from Full to <a href="https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/" target="_blank" rel="noopener">Full (strict)</a> at the same moment, so Cloudflare now validates my origin certificate end to end instead of accepting whatever cert the origin presents. Plain Full is the trap where the origin cert is never checked, which makes it useless.</p>
                     <p>I kept the old Hugo image on the box instead of deleting it. Retiring a container while keeping its image is a cheap rollback. If the new site had misbehaved, one command would have brought Hugo back.</p>
                     <p>One hole remained. The origin was answering on 80 and 443 for anyone on the internet. Cloudflare was fronting the site, but if someone found my droplet's IP, they could hit it directly and bypass Cloudflare's WAF and DDoS protection entirely. The fix is to allow inbound 80 and 443 only from Cloudflare's own IP ranges.</p>
@@ -565,7 +565,7 @@ server {
   --inbound-rules "protocol:tcp,ports:22,address:0.0.0.0/0,address:::/0"</code></pre>
                     <p>Then I tested from three angles. The site loaded through Cloudflare. SSH still worked. A direct HTTP request to the origin IP failed with HTTP 000 instead of serving the site. A firewall you don't test from the outside is a guess.</p>
 
-                    <h3>Raising HSTS, and a Docker inode gotcha</h3>
+                    <h2>Raising HSTS, and a Docker inode gotcha</h2>
                     <p>With HTTPS proven stable, I raised HSTS from the 300-second rollout value to a full year. Edited <code>nginx.conf</code>, pushed the change, pulled on the droplet, ran <code>nginx -s reload</code>. Ran <code>curl -I</code> against the site to confirm.</p>
                     <p><code>max-age</code> was still 300.</p>
                     <p>Ran reload again. Still 300. Checked the config file inside the container. Definitely the new value. Reload was completing without errors. The header was old.</p>
@@ -581,7 +581,7 @@ curl -sI https://keepbreath.ing | grep -i strict
 # strict-transport-security: max-age=31536000; includeSubDomains</code></pre>
                     <p>The real fix is to bind-mount the config directory instead of the single file, so an inode swap on the file inside no longer matters. That's on the backlog now.</p>
 
-                    <h3>What I learned</h3>
+                    <h2>What I learned</h2>
                     <p>Curl looked broken because <code>localhost</code> resolved to IPv6 while podman had only bound the port on IPv4. A pasted certificate became a shell command because I put it in a file that got sourced. A squash-merge left <code>git branch -d</code> complaining a branch wasn't merged. Docker served a stale config because the bind mount was pinned to an inode <code>git pull</code> had orphaned. Docker's iptables writes bypass <code>ufw</code> entirely, which is why the firewall had to live at the DO edge.</p>
                     <p>The current box is running end-of-life Ubuntu and needs to be replaced. There's a saying you'll hear in DevOps circles: "cattle, not pets." The phrase was coined around 2011 by Bill Baker at Microsoft and popularized by Randy Bias of CloudScaling. Pets are servers you name, feed, and nurse back to health when they break. Cattle are numbered, interchangeable, and replaced when they fail. The point of keeping your infrastructure in code is to move a server from the first category to the second.</p>
                     <p>Because my whole stack now lives in git, this box is cattle. The next post is standing up an identical stack on a fresh LTS droplet and cutting DNS over to it.</p>
@@ -618,7 +618,7 @@ curl -sI https://keepbreath.ing | grep -i strict
                         <figcaption>The game itself. Two paddles, a ball, a score, and nothing else on the screen.</figcaption>
                     </figure>
 
-                    <h3>The physics</h3>
+                    <h2>The physics</h2>
                     <p>I made the contact point on the paddle set the return angle and the return speed.</p>
                     <pre><code>offset = (ball.y - paddle_center) / (paddle.height / 2)
 
@@ -632,7 +632,7 @@ speed_x = direction * speed</code></pre>
                     <p>A corner hit while sweeping hard is the whole game. That's how you score. Against the computer it's close to the only way you score, because anything softer gets read and sent back at you.</p>
                     <p>Which is why the speed is capped at 16. The ceiling isn't there to protect the computer, it's there to protect you. Uncapped, that same shot works just as well coming the other direction, and on HARD you end up facing balls that no human hand is getting to. The window is narrow. Fast enough that a rally has some threat in it, slow enough that a player who reads the shot can still get there.</p>
 
-                    <h3>Then the ball got stuck in the paddle</h3>
+                    <h2>Then the ball got stuck in the paddle</h2>
                     <p>This one needs some setup, because the bug doesn't make sense until you know how the game actually moves.</p>
                     <p>The ball doesn't slide across the screen. Sixty times a second the program wakes up, adds the ball's speed to its position, checks what it's touching, and draws the result. The ball is teleporting. It's just teleporting in steps small enough that your eye reads it as motion.</p>
                     <p>My collision check was one idea. If the ball's box and the paddle's box are overlapping, flip the horizontal speed and send it back the other way.</p>
@@ -641,13 +641,13 @@ speed_x = direction * speed</code></pre>
                     <p>The ball sat there and vibrated. I let it run for a good while because I wasn't sure what I was looking at.</p>
                     <p>So I made two changes. The ball only gets turned around if it's actually heading into the paddle, which leaves one that's already on its way out alone. And the moment it makes contact, I move it so it's sitting flush against the face of the paddle, which clears the overlap before the next frame ever looks at it.</p>
 
-                    <h3>Then it went straight through the paddle</h3>
+                    <h2>Then it went straight through the paddle</h2>
                     <p>Same root problem wearing a different hat.</p>
                     <p>I was working out which direction to bounce by comparing the paddle's position to the ball's. If the paddle was to the left of the ball, send the ball right, and so on. Reasonable, until the ball jumps deep enough in one frame that its center ends up on the far side of the paddle's center. Now the comparison says the paddle is on the right, so the code sends the ball right, straight on through and out the back for a point. It did exactly what I told it to do.</p>
                     <p>I fixed it by not asking. The left paddle is on the left half of the screen and it is never going to be anywhere else, so I read the side off the screen half instead of recalculating it from two things that are both moving.</p>
                     <p>Corners were a smaller version of the same thing. Fast diagonals kept sneaking past the paddle tips through a very short overlap window, so I ran the collision box six pixels past each end. The paddle still draws at its real size and the angle math still uses the real height. The tips are just a little more generous than they look. I'd rather have that than a game that's technically correct about six pixels while your best shot of the night goes through the wall.</p>
 
-                    <h3>The computer got very good at being bad</h3>
+                    <h2>The computer got very good at being bad</h2>
                     <p>I didn't see this one coming at all.</p>
                     <p>My CPU worked the way you'd expect. Follow the ball, center the paddle on it, hit it back. Under the old physics that made a decent opponent. Under the new physics it made the worst opponent that can exist, because centering the paddle produces the slowest, flattest shot in the game.</p>
                     <p>I had built something that accidentally optimized for playing badly. Every rally turned into the computer lobbing soft floaters at me until I lost interest.</p>
@@ -655,7 +655,7 @@ speed_x = direction * speed</code></pre>
                     <p>It picks a new target every single time you hit the ball. That's what makes it feel alive. A long rally becomes a string of different attacks instead of the same one on a loop, and when the ball is heading away from it, it stops shadowing you and drifts back toward center.</p>
                     <p>Forty lines or so. Completely different game after that.</p>
 
-                    <h3>Difficulty</h3>
+                    <h2>Difficulty</h2>
                     <pre><code>DIFFICULTY = {"EASY": (5, 18), "NORMAL": (7, 30), "HARD": (9, 42)}</code></pre>
                     <p>Each level is two values. The first is how fast the computer's paddle can move, and the second is how far toward the corner it aims when it swings.</p>
                     <p>EASY moves slower than you do and aims politely, so you can beat it by putting the ball where it isn't. HARD matches your paddle speed and goes for the edges. None of it touches the ball itself. What changes between the levels is how good the opponent is at playing.</p>
@@ -665,7 +665,7 @@ speed_x = direction * speed</code></pre>
                     </figure>
                     <p>I still can't beat it on HARD. I can score on it, which is how I know the level is winnable and not just a wall, but taking one all the way to fifteen would mean practice hours I don't have right now. That doesn't bother me. I'd rather the top setting be something I have to grow into than something I cleared the first night I built it.</p>
 
-                    <h3>The dumbest bug in the project</h3>
+                    <h2>The dumbest bug in the project</h2>
                     <p>The win screen could be dismissed by any key at all. So if you happened to be holding a movement key at the moment the last point landed, which is exactly what you're doing during a final rally, it appeared and vanished inside the same frame.</p>
                     <p>The reason it took me so long to catch is that I almost never got there. Most of my testing stopped well short of fifteen points, because I'd notice something off, change it, and start over. And once the physics were tuned but before I'd added difficulty levels, I couldn't beat the computer at all.</p>
                     <p>The first game I ever played through to a win was on EASY, after the difficulty settings went in. I scored the fifteenth point, something flickered, and I was back at the menu. Locking dismissal to Enter and Space fixed it, and the second time I won I actually got to look at it.</p>
@@ -674,7 +674,7 @@ speed_x = direction * speed</code></pre>
                         <figcaption>The win screen. For a while it appeared and vanished in the same frame.</figcaption>
                     </figure>
 
-                    <h3>Where it stands</h3>
+                    <h2>Where it stands</h2>
                     <p>One player or two, difficulty levels, an opponent that plays you, scoring, a win screen, a rematch. By any reasonable definition that's a finished game. It's just a plain one.</p>
                     <figure>
                         <img src="images/pong-start.png" alt="The Pong start menu with options for 1 Player, 2 Players, and Start" width="800" height="600">

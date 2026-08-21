@@ -647,7 +647,7 @@ body.glitching {
    margin-bottom: 4px;
 }
 
-.milestone-content h3 {
+.milestone-content h2 {
    font-size: 14px;
    color: var(--text-bright);
 }
@@ -678,7 +678,7 @@ body.glitching {
    padding: 20px;
 }
 
-.skill-card h3 {
+.skill-card h2 {
    font-size: 12px;
    color: var(--cyan);
    text-transform: uppercase;
@@ -762,7 +762,7 @@ body.glitching {
    border-bottom: 1px solid var(--border);
 }
 
-.project-card-top h3 {
+.project-card-top h2 {
    font-size: 15px;
    color: var(--text-bright);
 }
@@ -1100,7 +1100,7 @@ body.glitching {
 }
 
 /* Section headings inside a post body, marked with a cyan "## " like a shell/markdown heading */
-.post-full h3 {
+.post-full h2 {
    margin: 22px 0 8px;
    font-size: 14px;
    font-weight: 700;
@@ -1108,7 +1108,7 @@ body.glitching {
    letter-spacing: 0.02em;
 }
 
-.post-full h3::before {
+.post-full h2::before {
    content: "## ";
    color: var(--cyan);
 }

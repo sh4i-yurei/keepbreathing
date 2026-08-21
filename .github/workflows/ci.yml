@@ -1,0 +1,89 @@
+# Quality gates for the keepbreath.ing static site.
+#
+# The site is hand-coded HTML with no build step, so these checks target the
+# mistakes hand-editing invites: invalid markup, an image path pointing at a file
+# that is not there, a duplicated id, a dead link, and a page that renders but
+# does not work.
+#
+# Third-party actions are pinned to full commit SHAs. A tag can be moved to point
+# at different code; a SHA cannot.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege: nothing here needs to write to the repository.
+permissions:
+  contents: read
+
+jobs:
+  html:
+    name: HTML validity
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The Nu Html Checker is the engine behind the W3C validator. It publishes a
+      # rolling "latest" release rather than version tags, so the jar is pinned by
+      # checksum instead. If this step fails after an upstream release, review the
+      # new jar deliberately and update the hash here — the same reasoning as
+      # pinning the nginx image by digest.
+      - name: Fetch the Nu Html Checker
+        env:
+          VNU_SHA1: 24c5b5c10a4c52304120a5877de1817a6d1eacc4
+        run: |
+          curl -sSL -o vnu.jar \
+            https://github.com/validator/validator/releases/download/latest/vnu.jar
+          echo "${VNU_SHA1}  vnu.jar" | sha1sum -c - || {
+            echo "::error::vnu.jar checksum changed. Review the upstream release, then update VNU_SHA1."
+            exit 1
+          }
+
+      # ubuntu-24.04 ships Java 17 as default, which is what vnu.jar requires.
+      - name: Validate every page
+        run: java -jar vnu.jar --errors-only site/*.html
+
+  structure:
+    name: Structure and assets
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check tags, image paths and ids
+        run: python3 scripts/check-structure.py
+
+  browser:
+    name: Browser end-to-end
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: lts/*
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install chromium --with-deps
+      - name: Run the contact form test
+        run: npx playwright test
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  links:
+    name: Links (advisory)
+    runs-on: ubuntu-24.04
+    # Not a required check. External sites go down, rate-limit, and block CI
+    # runners for reasons that have nothing to do with this repository. A red
+    # gate nobody trusts is worse than an advisory one that gets read.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        with:
+          args: --no-progress --root-dir "$(pwd)/site" 'site/**/*.html'
+          fail: true
