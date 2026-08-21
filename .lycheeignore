@@ -1,5 +1,14 @@
-# Cloudflare rewrites email addresses into these at the edge; they do not exist
+# Cloudflare rewrites email addresses into these at the edge. They do not exist
 # in source and cannot be followed.
 ^/cdn-cgi/
+
 # Mail links are not fetchable.
 ^mailto:
+
+# LinkedIn returns HTTP 999 to any non-browser client, and 405 even with a
+# browser user agent. The profile is live; LinkedIn simply refuses automation.
+^https://www\.linkedin\.com/
+
+# Brevo's help centre runs on Zendesk, which returns 403 to CI runners. The
+# article is live in a browser.
+^https://help\.brevo\.com/
