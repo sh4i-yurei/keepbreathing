@@ -16,6 +16,10 @@ on:
     workflows: [CI]
     types: [completed]
     branches: [main]
+  # Manual escape hatch, for when the droplet was unreachable during the
+  # automatic run. It deploys whatever is currently on main. That is safe
+  # because main is protected and cannot hold a commit that failed CI, but it
+  # does skip the conclusion check below, so it is a deliberate bypass.
   workflow_dispatch:
 
 permissions:
@@ -56,6 +60,12 @@ jobs:
         run: |
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
               "root@${HOST}" deploy-site
+
+      # The runner is ephemeral, so the key dies with the VM regardless. Removing
+      # it explicitly means a later step added to this job can never pick it up.
+      - name: Remove the deploy key
+        if: always()
+        run: shred -u ~/.ssh/deploy_key 2>/dev/null || rm -f ~/.ssh/deploy_key
 
       - name: Verify the site is serving
         run: |
