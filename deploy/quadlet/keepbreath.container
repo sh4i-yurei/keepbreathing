@@ -1,0 +1,48 @@
+# keepbreath.ing — nginx site container
+# Author: Mark Thompson
+#
+# Quadlet unit. systemd generates a service from this file, so the container
+# starts at boot, restarts on failure, and logs to journalctl.
+#
+# Runs rootless as keepbreath1. That account has lingering enabled, which is
+# what keeps the container running with nobody logged in.
+
+[Unit]
+Description=keepbreath.ing static site (nginx)
+
+[Container]
+ContainerName=keepbreath
+
+# Pinned by digest, so the tag cannot move this to a different build.
+# Picking up a newer image means editing this line.
+Image=docker.io/library/nginx:alpine@sha256:1d40e3eb3bf4f138de1d67193f2aa5309fcaf343eb5ffadbf5e9439de1eb1ebb
+
+# Shared network, so nginx reaches the contact API by container name rather
+# than by an address that changes. Owned by keepbreath1 — a network created
+# by root is invisible to rootless containers.
+Network=keepbreath-net
+
+PublishPort=80:80
+PublishPort=443:443
+
+# ro because nginx never writes to any of these. z applies an SELinux label
+# the container is allowed to read; without it access is refused on files the
+# host reports as readable.
+#
+# The config is mounted as a directory, not as a single file. A single-file
+# mount pins to that file's inode, and git pull replaces the file rather than
+# editing it, which would leave the container serving the old config.
+Volume=/srv/keepbreathing/site:/usr/share/nginx/html:ro,z
+Volume=/srv/keepbreathing/deploy/nginx:/etc/nginx/conf:ro,z
+Volume=/srv/keepbreathing/deploy/certs:/etc/nginx/certs:ro,z
+
+# -c points nginx at the mounted config; its default path is
+# /etc/nginx/nginx.conf. daemon off keeps nginx in the foreground, without
+# which the container exits as soon as nginx backgrounds itself.
+Exec=nginx -c /etc/nginx/conf/nginx.conf -g "daemon off;"
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
