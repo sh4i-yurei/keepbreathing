@@ -26,21 +26,27 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The Nu Html Checker is the engine behind the W3C validator. It publishes a
-      # rolling "latest" release rather than version tags, so the jar is pinned by
-      # checksum instead. If this step fails after an upstream release, review the
-      # new jar deliberately and update the hash here — the same reasoning as
-      # pinning the nginx image by digest.
-      - name: Fetch the Nu Html Checker
+      # The Nu Html Checker is the engine behind the W3C validator. It has no
+      # version numbers — the same "latest" URL serves a new build whenever
+      # upstream rebuilds — so the jar is verified by its GPG signature rather
+      # than by the checksum of one particular build. The public key is committed
+      # at .github/vnu-signing-key.asc and the fingerprint is pinned below.
+      - name: Fetch and verify the Nu Html Checker
         env:
-          VNU_SHA1: 24c5b5c10a4c52304120a5877de1817a6d1eacc4
+          VNU_KEY_FPR: D4875856415E63964D87445187D17477BC3A4B95
         run: |
-          curl -sSL -o vnu.jar \
-            https://github.com/validator/validator/releases/download/latest/vnu.jar
-          echo "${VNU_SHA1}  vnu.jar" | sha1sum -c - || {
-            echo "::error::vnu.jar checksum changed. Review the upstream release, then update VNU_SHA1."
-            exit 1
-          }
+          base=https://github.com/validator/validator/releases/download/latest
+          curl -sSL -o vnu.jar     "$base/vnu.jar"
+          curl -sSL -o vnu.jar.asc "$base/vnu.jar.asc"
+
+          export GNUPGHOME=$(mktemp -d)
+          gpg --quiet --import .github/vnu-signing-key.asc
+
+          gpg --status-fd 1 --verify vnu.jar.asc vnu.jar 2>/dev/null \
+            | grep -q "^\[GNUPG:\] VALIDSIG ${VNU_KEY_FPR}" || {
+              echo "::error::vnu.jar is not signed by ${VNU_KEY_FPR}. Do not run it."
+              exit 1
+            }
 
       # ubuntu-24.04 ships Java 17 as default, which is what vnu.jar requires.
       - name: Validate every page
