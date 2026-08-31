@@ -48,6 +48,13 @@ jobs:
         run: |
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
           printf '%s' "$KEY" > ~/.ssh/deploy_key
+          # OpenSSH refuses to parse a private key whose file does not end in a
+          # newline, and GitHub strips trailing whitespace from secret values.
+          # The failure is "error in libcrypto" and then Permission denied, which
+          # reads like a rejected key rather than a malformed file.
+          if [ -n "$(tail -c1 ~/.ssh/deploy_key)" ]; then
+            printf '\n' >> ~/.ssh/deploy_key
+          fi
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
