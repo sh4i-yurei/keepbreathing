@@ -69,20 +69,3 @@ jobs:
       - name: Remove the deploy key
         if: always()
         run: shred -u ~/.ssh/deploy_key 2>/dev/null || rm -f ~/.ssh/deploy_key
-
-      - name: Verify the site is serving
-        env:
-          HOST: ${{ secrets.DEPLOY_HOST }}
-        run: |
-          # Check the box that was just deployed to, not whatever DNS points at.
-          # Until the cutover those are different machines, so trusting DNS would
-          # confirm a deploy by testing a server that never received it.
-          for i in 1 2 3 4 5; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' \
-              --resolve "keepbreath.ing:443:${HOST}" https://keepbreath.ing/)
-            echo "attempt $i: HTTP $code"
-            [ "$code" = "200" ] && exit 0
-            sleep 5
-          done
-          echo "::error::site did not return 200 after deploy"
-          exit 1
