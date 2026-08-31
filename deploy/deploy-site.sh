@@ -28,12 +28,25 @@ podman exec keepbreath nginx -t -c /etc/nginx/conf/nginx.conf
 
 if [ "$before" = "$after" ]; then
     echo "nginx.conf unchanged; no reload needed"
-    exit 0
+else
+    # Reload rather than restart: nginx hands connections to new workers without
+    # dropping any. It sees the new file because deploy/nginx is mounted as a
+    # directory, so the pull is already visible inside the container.
+    echo "config valid; reloading nginx"
+    podman exec keepbreath nginx -s reload
+    echo "reload complete"
 fi
 
-# Reload rather than restart: nginx hands connections to new workers without
-# dropping any. It sees the new file because deploy/nginx is mounted as a
-# directory, so the pull is already visible inside the container.
-echo "config valid; reloading nginx"
-podman exec keepbreath nginx -s reload
-echo "reload complete"
+# Verified from the box rather than from the runner. The origin accepts 443 only
+# from Cloudflare's ranges, so a GitHub runner cannot reach it directly; and
+# fetching the public name from outside would test whichever machine DNS points
+# at, which is not this one until the cutover. -k because the origin certificate
+# is a Cloudflare origin cert rather than one signed by a public CA.
+echo "verifying the site responds"
+code=$(curl -sk -o /dev/null -w '%{http_code}' --max-time 10 \
+    --resolve keepbreath.ing:443:127.0.0.1 https://keepbreath.ing/)
+if [ "$code" != "200" ]; then
+    echo "site returned HTTP $code after deploy" >&2
+    exit 1
+fi
+echo "site responded 200"
