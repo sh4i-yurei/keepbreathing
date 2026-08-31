@@ -58,8 +58,11 @@ jobs:
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
+          # keepbreath1, not root. That account owns /srv/keepbreathing and the
+          # container, so it can do the whole deploy, and the key is registered
+          # there with restrict and a forced command.
           ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
-              "root@${HOST}" deploy-site
+              "keepbreath1@${HOST}" deploy-site
 
       # The runner is ephemeral, so the key dies with the VM regardless. Removing
       # it explicitly means a later step added to this job can never pick it up.
