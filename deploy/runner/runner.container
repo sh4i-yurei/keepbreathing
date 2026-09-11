@@ -1,0 +1,33 @@
+# Quadlet unit for the ephemeral GitHub Actions runner on the control plane.
+# Installed at ~/.config/containers/systemd/runner.container for keepbreath3,
+# which makes it a user service that starts at boot (lingering is on) and
+# restarts after every job, since an ephemeral runner exits when its one job
+# completes.
+
+[Unit]
+Description=Ephemeral GitHub Actions runner for keepbreathing
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+# Pinned by digest, not tag. Runner 2.337.0 on Ubuntu 24.04.
+Image=ghcr.io/actions/actions-runner@sha256:5036480998280bb21e32ade9fe1b02b493861ac314b62ba1aea320b94f56ec97
+ContainerName=runner
+# The long-lived registration credential, exposed inside the container at
+# /run/secrets/runner-registration-token. Never on disk in plain text.
+Secret=runner-registration-token
+# Map keepbreath3 to uid 1001 inside, which is the image's `runner` user.
+UserNS=keep-id:uid=1001,gid=1001
+# The entrypoint, and the runner account's SSH key and known_hosts for the
+# deploy step. Both read-only; the job cannot alter either.
+Volume=%h/runner/start.sh:/usr/local/bin/runner-start:ro,z
+Volume=%h/.ssh:/home/runner/.ssh:ro,z
+Exec=runner-start
+
+[Service]
+# Ephemeral: the container exits after one job, and this brings up the next.
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

@@ -1,13 +1,19 @@
-# Deploys keepbreath.ing to the droplet after CI passes on main.
+# Deploys keepbreath.ing to the web box after CI passes on main.
 #
-# The SSH key this uses is not a general key to the box. On the droplet it is
-# registered with `restrict` and a forced command, so it can run
-# /usr/local/bin/deploy-site and nothing else — no shell, no PTY, no port
-# forwarding. Verified by attempting `cat /etc/shadow` with it and getting the
-# deploy script instead.
+# Runs on the self-hosted runner on the control plane (deploy/runner/), which
+# reaches the web box over the private network. Nothing inbound is needed
+# anywhere: the runner only makes outbound connections to GitHub, and the web
+# box only has to accept SSH from the control plane's private address.
 #
-# The secrets live in the `production` environment, whose branch policy allows
-# only `main`. A pull request cannot reach them.
+# The SSH key is the runner account's own, mounted read-only into the runner
+# container. On the web box it is registered with `restrict`, a forced command
+# and a `from=` clause, so it can run /usr/local/bin/deploy-site and nothing
+# else, and only from the control plane — no shell, no PTY, no port forwarding.
+# Verified by attempting `cat /etc/shadow` with it and getting the deploy
+# script instead.
+#
+# The `production` environment's branch policy allows only `main`, so a pull
+# request cannot trigger this job on the runner.
 
 name: Deploy
 
@@ -31,8 +37,8 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy to droplet
-    runs-on: ubuntu-24.04
+    name: Deploy to web box
+    runs-on: [self-hosted, keepbreathing]
     # Only deploy when CI actually passed. workflow_run fires on failure too.
     if: >-
       ${{ github.event_name == 'workflow_dispatch' ||
@@ -41,37 +47,13 @@ jobs:
       name: production
       url: https://keepbreath.ing
     steps:
-      - name: Load the deploy key
-        env:
-          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-        run: |
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          # DEPLOY_SSH_KEY holds the key base64-encoded, so the secret's value is
-          # a single line of characters that cannot be reshaped in transit.
-          # Stored as raw PEM it only takes a lost line break or a stripped
-          # trailing newline to produce "error in libcrypto" and then Permission
-          # denied, which reads like the server rejecting the key rather than ssh
-          # never having loaded it.
-          printf '%s' "$KEY" | base64 -d > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
-
       # The remote command is ignored: sshd runs the forced command regardless.
       # It is written out anyway so the intent is readable in the logs.
       - name: Deploy
-        env:
-          HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           # keepbreath1, not root. That account owns /srv/keepbreathing and the
           # container, so it can do the whole deploy, and the key is registered
-          # there with restrict and a forced command.
-          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
-              "keepbreath1@${HOST}" deploy-site
-
-      # The runner is ephemeral, so the key dies with the VM regardless. Removing
-      # it explicitly means a later step added to this job can never pick it up.
-      - name: Remove the deploy key
-        if: always()
-        run: shred -u ~/.ssh/deploy_key 2>/dev/null || rm -f ~/.ssh/deploy_key
+          # there with restrict and a forced command. The host is the web box's
+          # private address; the runner's known_hosts already carries it.
+          ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes -o BatchMode=yes \
+              keepbreath1@10.128.0.3 deploy-site
