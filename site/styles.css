@@ -1113,6 +1113,20 @@ body.glitching {
    color: var(--cyan);
 }
 
+/* Sub-section headings, one level down, marked "### " the same way */
+.post-full h3 {
+   margin: 18px 0 6px;
+   font-size: 13px;
+   font-weight: 700;
+   color: var(--text-bright);
+   letter-spacing: 0.02em;
+}
+
+.post-full h3::before {
+   content: "### ";
+   color: var(--cyan);
+}
+
 /* Fenced code blocks: a bordered terminal panel with a cyan left rule; scrolls sideways if a line is long */
 .post-full pre {
    margin: 12px 0;
