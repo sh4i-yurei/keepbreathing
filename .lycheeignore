@@ -12,3 +12,7 @@
 # Brevo's help centre runs on Zendesk, which returns 403 to CI runners. The
 # article is live in a browser.
 ^https://help\.brevo\.com/
+
+# Red Hat's documentation site returns 403 to CI runners and to curl with a
+# browser user agent. The hardening guide is live in a browser.
+^https://docs\.redhat\.com/
