@@ -1,11 +1,20 @@
-# Quadlet unit for the ephemeral GitHub Actions runner on the control plane.
-# Installed at ~/.config/containers/systemd/runner.container for keepbreath3,
-# which makes it a user service that starts at boot (lingering is on) and
-# restarts after every job, since an ephemeral runner exits when its one job
-# completes.
+# Quadlet unit for the GitHub Actions runner on the control plane. Installed at
+# ~/.config/containers/systemd/runner.container for keepbreath3, which makes it a
+# user service that starts at boot (lingering is on) and restarts after every
+# job.
+#
+# Each start is two steps. First, on the host, runner-jitconfig.sh reads the
+# long-lived registration credential from this user's Podman secret store and
+# trades it for a just-in-time config, which it stores as the secret
+# runner-jitconfig. Then the container starts with only that config mounted. A
+# JIT runner runs exactly one job and is removed by GitHub afterward, so the
+# container exits and Restart= brings up the next one, with a fresh config.
+#
+# The long-lived credential never enters a container. A job that reads
+# /run/secrets/ finds a single-use config that was spent when the job began.
 
 [Unit]
-Description=Ephemeral GitHub Actions runner for keepbreathing
+Description=GitHub Actions runner for keepbreathing (just-in-time, one job per container)
 After=network-online.target
 Wants=network-online.target
 
@@ -13,9 +22,10 @@ Wants=network-online.target
 # Pinned by digest, not tag. Runner 2.337.0 on Ubuntu 24.04.
 Image=ghcr.io/actions/actions-runner@sha256:5036480998280bb21e32ade9fe1b02b493861ac314b62ba1aea320b94f56ec97
 ContainerName=runner
-# The long-lived registration credential, exposed inside the container at
-# /run/secrets/runner-registration-token. Never on disk in plain text.
-Secret=runner-registration-token
+# The single-use JIT config minted by ExecStartPre below, exposed inside the
+# container at /run/secrets/runner-jitconfig. The registration credential itself
+# is a different secret and is never mounted anywhere.
+Secret=runner-jitconfig
 # Map keepbreath3 to uid 1001 inside, which is the image's `runner` user.
 UserNS=keep-id:uid=1001,gid=1001
 # The entrypoint, and the runner account's SSH key and known_hosts for the
@@ -25,7 +35,11 @@ Volume=%h/.ssh:/home/runner/.ssh:ro,z
 Exec=runner-start
 
 [Service]
-# Ephemeral: the container exits after one job, and this brings up the next.
+# Mint the JIT config on the host before podman run. Runs as keepbreath3 with
+# this unit's session, which is what `podman secret` needs. If GitHub refuses,
+# the unit does not start, which is the right outcome: no config, no runner.
+ExecStartPre=%h/runner/runner-jitconfig.sh
+# One job per container, and this brings up the next.
 Restart=always
 RestartSec=10
 
