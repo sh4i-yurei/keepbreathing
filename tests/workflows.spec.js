@@ -1,0 +1,34 @@
+import { readFileSync } from 'node:fs';
+import { test, expect } from '@playwright/test';
+
+const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
+const deploy = readFileSync('.github/workflows/deploy.yml', 'utf8');
+const readme = readFileSync('README.md', 'utf8');
+
+test('CI runs on every push and pull request', () => {
+  expect(ci).toMatch(/^on:\n  pull_request:\n  push: \{\}\n\n/m);
+});
+
+test('deploy remains limited to successful main CI runs or manual dispatch', () => {
+  expect(deploy).toContain(
+    'on:\n' +
+    '  workflow_run:\n' +
+    '    workflows: [CI]\n' +
+    '    types: [completed]\n' +
+    '    branches: [main]\n' +
+    '  # Manual escape hatch, for when the droplet was unreachable during the\n' +
+    '  # automatic run. It deploys whatever is currently on main. That is safe\n' +
+    '  # because main is protected and cannot hold a commit that failed CI, but it\n' +
+    '  # does skip the conclusion check below, so it is a deliberate bypass.\n' +
+    '  workflow_dispatch:\n\n'
+  );
+  expect(deploy).toContain(
+    "    if: >-\n      ${{ github.event_name == 'workflow_dispatch' ||\n" +
+    "          github.event.workflow_run.conclusion == 'success' }}"
+  );
+});
+
+test('README describes CI on pushes and pull requests and main-only deployment', () => {
+  expect(readme).toContain('Four checks run on every push and every pull request:');
+  expect(readme).toContain('Merging to `main` deploys automatically once CI passes.');
+});

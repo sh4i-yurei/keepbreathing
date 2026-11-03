@@ -71,7 +71,7 @@ python3 scripts/check-structure.py
 
 ## CI and deployment
 
-Four checks run on every pull request:
+Four checks run on every push and every pull request:
 
 | Check | What it does | Required |
 |---|---|---|
