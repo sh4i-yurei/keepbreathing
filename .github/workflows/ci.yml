@@ -11,7 +11,6 @@
 name: CI
 
 on:
-  pull_request:
   push: {}
 
 # Least privilege: nothing here needs to write to the repository.
