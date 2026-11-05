@@ -5,8 +5,9 @@ const ci = readFileSync('.github/workflows/ci.yml', 'utf8');
 const deploy = readFileSync('.github/workflows/deploy.yml', 'utf8');
 const readme = readFileSync('README.md', 'utf8');
 
-test('CI runs on every push and pull request', () => {
-  expect(ci).toMatch(/^on:\n  pull_request:\n  push: \{\}\n\n/m);
+test('CI runs on every push only', () => {
+  expect(ci).toMatch(/^on:\n  push: \{\}\n\n/m);
+  expect(ci).not.toContain('pull_request');
 });
 
 test('deploy remains limited to successful main CI runs or manual dispatch', () => {
@@ -28,7 +29,8 @@ test('deploy remains limited to successful main CI runs or manual dispatch', () 
   );
 });
 
-test('README describes CI on pushes and pull requests and main-only deployment', () => {
-  expect(readme).toContain('Four checks run on every push and every pull request:');
+test('README describes CI on pushes and main-only deployment', () => {
+  expect(readme).toContain('Four checks run on every push:');
+  expect(readme).not.toContain('every pull request');
   expect(readme).toContain('Merging to `main` deploys automatically once CI passes.');
 });
