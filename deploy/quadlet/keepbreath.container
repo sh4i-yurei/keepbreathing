@@ -24,6 +24,8 @@ Network=keepbreath-net
 
 PublishPort=80:80
 PublishPort=443:443
+# The staging box's tunnel reaches only the host's loopback listener.
+PublishPort=127.0.0.1:8080:8080
 
 # ro because nginx never writes to any of these. z applies an SELinux label
 # the container is allowed to read; without it access is refused on files the

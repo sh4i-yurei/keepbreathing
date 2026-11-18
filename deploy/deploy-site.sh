@@ -11,31 +11,22 @@ set -eu
 REPO=/srv/keepbreathing
 cd "$REPO"
 
-before=$(sha256sum deploy/nginx/nginx.conf | cut -d' ' -f1)
-
 git fetch --quiet origin main
 git merge --ff-only origin/main
 
-after=$(sha256sum deploy/nginx/nginx.conf | cut -d' ' -f1)
 echo "deployed $(git rev-parse --short HEAD)"
 
-# Validated on every deploy, not only when the file changed. A config that failed
-# validation stays on disk, and a later deploy that does not touch it would skip
-# the check and report success while the container still holds a config it would
-# refuse to start from after a reboot.
+# Validate and reload on every deploy. nginx.conf includes site.conf, so a hash
+# of only nginx.conf would miss a change to the shared file.
 echo "validating nginx config"
 podman exec keepbreath nginx -t -c /etc/nginx/conf/nginx.conf
 
-if [ "$before" = "$after" ]; then
-    echo "nginx.conf unchanged; no reload needed"
-else
-    # Reload rather than restart: nginx hands connections to new workers without
-    # dropping any. It sees the new file because deploy/nginx is mounted as a
-    # directory, so the pull is already visible inside the container.
-    echo "config valid; reloading nginx"
-    podman exec keepbreath nginx -s reload
-    echo "reload complete"
-fi
+# Reload rather than restart: nginx hands connections to new workers without
+# dropping any. It sees the new file because deploy/nginx is mounted as a
+# directory, so the pull is already visible inside the container.
+echo "config valid; reloading nginx"
+podman exec keepbreath nginx -s reload
+echo "reload complete"
 
 # Verified from the box rather than from the runner. The origin accepts 443 only
 # from Cloudflare's ranges, so a GitHub runner cannot reach it directly; and

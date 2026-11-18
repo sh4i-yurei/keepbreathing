@@ -3,7 +3,8 @@
 # Author: Mark Thompson
 # ============================================================
 # Runs nginx (reverse proxy + static server) in a container on 80/443, joined to
-# the shared keepbreath-net so it can reach the contact-api container by name.
+# the shared keepbreath-net. /api/ reaches contact-api by name only under Podman,
+# because nginx resolves names through Podman's gateway at 10.89.0.1.
 # Ports overridable for staging via HTTP_PORT / HTTPS_PORT.
 
 services:
@@ -11,15 +12,16 @@ services:
     image: nginx:alpine@sha256:1d40e3eb3bf4f138de1d67193f2aa5309fcaf343eb5ffadbf5e9439de1eb1ebb
     container_name: keepbreath
     restart: unless-stopped
+    command: ["nginx", "-c", "/etc/nginx/conf/nginx.conf", "-g", "daemon off;"]
     ports:
       - "${HTTP_PORT:-80}:80"       # defaults to prod 80; override for staging
       - "${HTTPS_PORT:-443}:443"    # defaults to prod 443; override for staging
     volumes:
       - ../site:/usr/share/nginx/html:ro
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx:/etc/nginx/conf:ro
       - ./certs:/etc/nginx/certs:ro
     networks:
-      - keepbreath-net              # shared external net so nginx can reach contact-api by name
+      - keepbreath-net              # /api/ name lookup works only under Podman (resolver 10.89.0.1)
 
 networks:
   keepbreath-net:

@@ -30,7 +30,7 @@ test('deploy remains limited to successful main CI runs or manual dispatch', () 
 });
 
 test('README describes CI on pushes and main-only deployment', () => {
-  expect(readme).toContain('Four checks run on every push:');
+  expect(readme).toContain('Five checks run on every push:');
   expect(readme).not.toContain('every pull request');
   expect(readme).toContain('Merging to `main` deploys automatically once CI passes.');
 });
