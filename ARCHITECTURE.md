@@ -16,11 +16,12 @@ container and passes the contact form's `/api/` calls to the separate contact AP
 |---|---|---|---|---|
 | `site/` | The pages, styles and browser scripts | Served as static files by nginx | — | Need a build step |
 | `scripts/check-structure.py` | Structural checks the HTML validator doesn't make: tag balance, image paths that resolve, no duplicate ids | `python3 scripts/check-structure.py` | Exits non-zero and names each problem | Change the site |
+| `scripts/check-nginx.sh` | Check the real nginx config and each server's HTTP behavior against a stub contact API | `ENGINE=podman scripts/check-nginx.sh` from the repository root | Exits non-zero and names the failed check | Reach the live contact API |
 | `tests/`, `playwright.config.js` | The browser test of the contact form, with both API endpoints mocked | `npx playwright test`, after `npm ci` | Fails the CI job | Send real mail or reach a real backend |
-| `.github/workflows/ci.yml` | Run HTML validity, structure, the browser test and the advisory link check | GitHub Actions on every push | A failed required job blocks the merge | Deploy anything; rename a job without updating `main`'s protection, which requires the jobs by name |
+| `.github/workflows/ci.yml` | Run HTML validity, structure, the browser test, nginx config and the advisory link check | GitHub Actions on every push | A failed required job blocks the merge | Deploy anything; rename a job without updating `main`'s protection, which requires the jobs by name |
 | `.github/workflows/deploy.yml` | Deploy `main` once its CI run passes, or by hand | `workflow_run` on CI completed, filtered to `main`; `workflow_dispatch` | Skips the deploy when CI failed | React to a CI run on any branch but `main` |
-| `deploy/deploy-site.sh` | The deploy key's forced command on the web server: fast-forward to `origin/main`, validate the nginx config, and reload nginx in the existing container only when the config changed | Run by sshd for the restricted key | Stops at the first failed step | Run a command the client asks for |
-| `deploy/nginx/`, `deploy/quadlet/`, `deploy/docker-compose.yml` | The web container and its configuration | A Quadlet unit and `nginx.conf` | — | Hold a secret |
+| `deploy/deploy-site.sh` | The deploy key's forced command on the web server: fast-forward to `origin/main`, validate the nginx config, and reload nginx in the existing container after every passing validation | Run by sshd for the restricted key | Stops at the first failed step | Run a command the client asks for |
+| `deploy/nginx/`, `deploy/quadlet/`, `deploy/docker-compose.yml` | The web container and its configuration | A Quadlet unit, `nginx.conf` and shared `site.conf` | — | Hold a secret |
 | `deploy/runner/` | The just-in-time self-hosted runner that runs Deploy | A Quadlet unit, `runner-jitconfig.sh` and `start.sh` | The container exits after one job and a fresh one starts | Let the long-lived registration credential into a container |
 
 ## Rules every piece follows

@@ -58,6 +58,16 @@ jobs:
       - name: Check tags, image paths and ids
         run: python3 scripts/check-structure.py
 
+  nginx:
+    name: nginx config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install Podman
+        run: sudo apt-get update && sudo apt-get install -y podman
+      - name: Check nginx config and responses
+        run: sudo env ENGINE=podman bash scripts/check-nginx.sh
+
   browser:
     name: Browser end-to-end
     runs-on: ubuntu-24.04

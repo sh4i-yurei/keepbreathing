@@ -71,20 +71,21 @@ python3 scripts/check-structure.py
 
 ## CI and deployment
 
-Four checks run on every push:
+Five checks run on every push:
 
 | Check | What it does | Required |
 |---|---|---|
 | HTML validity | The Nu Html Checker over every page | Yes |
 | Structure and assets | Tag balance, image paths resolve, no duplicate ids | Yes |
 | Browser end-to-end | The Playwright test above | Yes |
+| nginx config | Syntax and HTTP responses for the nginx servers and API proxy | Yes |
 | Links | Dead link check | No, advisory |
 
-`main` is protected: the three required checks must pass, force pushes and
+`main` is protected: the four required checks must pass, force pushes and
 deletions are blocked, and administrators are not exempt.
 
 Merging to `main` deploys automatically once CI passes. The deploy runs over an
 SSH key that is restricted on the server to a single forced command, so it can
-run the deploy script and nothing else. The web container is restarted only
-when `deploy/nginx.conf` actually changed, and the config is validated in a
-throwaway container before the live one is touched.
+run the deploy script and nothing else. The repository's `deploy-site.sh`
+validates nginx's config in the running container and reloads nginx on every
+deploy. `web` runs the installed copy in `/usr/local/bin`, which the web role updates.
