@@ -16,8 +16,12 @@ git merge --ff-only origin/main
 
 echo "deployed $(git rev-parse --short HEAD)"
 
-# Validate and reload on every deploy. nginx.conf includes site.conf, so a hash
-# of only nginx.conf would miss a change to the shared file.
+# Validated on every deploy, not only when the file changed. A config that failed
+# validation stays on disk, and a later deploy that does not touch it would skip
+# the check and report success while the container still holds a config it would
+# refuse to start from after a reboot.
+# Reloaded on every deploy too: nginx.conf includes site.conf, so a hash of only
+# nginx.conf would miss a change to the shared file.
 echo "validating nginx config"
 podman exec keepbreath nginx -t -c /etc/nginx/conf/nginx.conf
 
